@@ -31,10 +31,10 @@ import java.util.TreeMap;
 import static dev.akorzun.onebrc.Challenge.round;
 
 
-public class Challenge_04_ParallelismNoSharing implements Challenge {
+public class Challenge_04_Parallelism implements Challenge {
 
     public static void main(String[] args) {
-        new Challenge_04_ParallelismNoSharing().run(args);
+        new Challenge_04_Parallelism().run(args);
     }
 
     @Override

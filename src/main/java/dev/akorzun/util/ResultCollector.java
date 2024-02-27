@@ -34,7 +34,7 @@ class ResultCollector {
             double mean = Double.parseDouble(json.substring(meanFrom, meanTo));
             double error = Double.parseDouble(json.substring(errorFrom, errorTo));
 
-            System.err.printf("%s   %-25s %8.3f ± %.3f   %7.2f%n",
+            System.err.printf("|%s|   %-25s| %8.3f ± %.3f| %7.2f|%n",
                     number, name,
                     mean, error, mean / prev * 100 - 100);
 

@@ -19,7 +19,7 @@ Results are collected using hyperfine with 3 warmups and 10 measurements. The pr
 
 ## AWS c7g.4xlarge
 * CPU: AMD EPYC 9R14
-* MEM: DDR5 4800 MT/s
+* MEM: DDR5 4800 MT/s 32 GB
   
 |#|Change|Time (413)|Reduction (413)|Time (10k)|Reduction (10k)|
 |-|-|-:|-:|-:|-:|

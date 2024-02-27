@@ -18,5 +18,5 @@
 . ./env.sh
 
 JAVA_OPTS="-Xmx4g -Xms4g -XX:+UseParallelGC --enable-preview"
-CMD="$JAVA $JAVA_CP $JAVA_OPTS dev.akorzun.onebrc.Challenge_04_ParallelismNoSharing -i $1"
+CMD="$JAVA $JAVA_CP $JAVA_OPTS dev.akorzun.onebrc.Challenge_04_Parallelism -i $1"
 $TASKSET $HYPERFINE "$CMD" $HYPERFINE_OPTS
