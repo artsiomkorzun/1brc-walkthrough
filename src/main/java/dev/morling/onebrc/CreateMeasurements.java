@@ -41,8 +41,7 @@ public class CreateMeasurements {
         int size = 0;
         try {
             size = Integer.parseInt(args[0]);
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             System.out.println("Invalid value for <number of records to create> <output file>");
             System.out.println("Usage: CreateMeasurements <number of records to create> <output file>");
             System.exit(1);

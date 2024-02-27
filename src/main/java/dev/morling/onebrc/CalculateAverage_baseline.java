@@ -28,13 +28,13 @@ public class CalculateAverage_baseline {
 
     private static final String FILE = "./measurements.txt";
 
-    private static record Measurement(String station, double value) {
+    private record Measurement(String station, double value) {
         private Measurement(String[] parts) {
             this(parts[0], Double.parseDouble(parts[1]));
         }
     }
 
-    private static record ResultRow(double min, double mean, double max) {
+    private record ResultRow(double min, double mean, double max) {
 
         public String toString() {
             return round(min) + "/" + round(mean) + "/" + round(max);
@@ -43,7 +43,7 @@ public class CalculateAverage_baseline {
         private double round(double value) {
             return Math.round(value * 10.0) / 10.0;
         }
-    };
+    }
 
     private static class MeasurementAggregator {
         private double min = Double.POSITIVE_INFINITY;

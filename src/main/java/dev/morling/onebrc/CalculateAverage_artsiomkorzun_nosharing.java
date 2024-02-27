@@ -28,27 +28,16 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Thank you guys:
- *
- * @gunnarmorling for the challenge.
- * @thomaswue for the best ILP loop and hinting that the crucial method is not being inlined.
- * @merykitty for parsing a value with SWAR trick.
- * @royvanrijn for parsing a key with SWAP trick.
- * @jerrinot for ILP and 16-byte branching.
- * @abeobk for the masking idea which makes the later one work as fast as hell.
- */
-public class CalculateAverage_artsiomkorzun_cmov {
+public class CalculateAverage_artsiomkorzun_nosharing {
 
     private static final Path FILE = Path.of("./measurements.txt");
-    private static final long SEGMENT_SIZE = 2 * 1024 * 1024;
     private static final long COMMA_PATTERN = 0x3B3B3B3B3B3B3B3BL;
     private static final long LINE_PATTERN = 0x0A0A0A0A0A0A0A0AL;
     private static final long DOT_BITS = 0x10101000;
     private static final long MAGIC_MULTIPLIER = (100 * 0x1000000 + 10 * 0x10000 + 1);
+    private static final long[] WORD_MASK = {0, 0, 0, 0, 0, 0, 0, 0, -1};
+    private static final int[] LENGTH_MASK = {0, 0, 0, 0, 0, 0, 0, 0, -1};
 
     private static final Unsafe UNSAFE;
 
@@ -113,26 +102,23 @@ public class CalculateAverage_artsiomkorzun_cmov {
 
     private static void execute() throws Exception {
         MemorySegment fileMemory = map(FILE);
-        long fileAddress = fileMemory.address();
-        long fileSize = fileMemory.byteSize();
-        int segmentCount = (int) ((fileSize + SEGMENT_SIZE - 1) / SEGMENT_SIZE);
-
-        AtomicInteger counter = new AtomicInteger();
-        AtomicReference<Aggregates> result = new AtomicReference<>();
-
         int parallelism = Runtime.getRuntime().availableProcessors();
         Aggregator[] aggregators = new Aggregator[parallelism];
+        Chunk[] chunks = split(fileMemory, parallelism);
 
         for (int i = 0; i < aggregators.length; i++) {
-            aggregators[i] = new Aggregator(counter, result, fileAddress, fileSize, segmentCount);
+            aggregators[i] = new Aggregator(chunks[i].position, chunks[i].limit);
             aggregators[i].start();
         }
 
-        for (int i = 0; i < aggregators.length; i++) {
-            aggregators[i].join();
+        Aggregates result = null;
+
+        for (Aggregator aggregator : aggregators) {
+            aggregator.join();
+            result = (result == null) ? aggregator.result : result.merge(aggregator.result);
         }
 
-        Map<String, Aggregate> aggregates = result.get().build();
+        Map<String, Aggregate> aggregates = result.build();
         System.out.println(text(aggregates));
         System.out.close();
     }
@@ -144,6 +130,30 @@ public class CalculateAverage_artsiomkorzun_cmov {
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Chunk[] split(MemorySegment segment, int parallelism) {
+        long size = segment.byteSize();
+        long chunk = (size + parallelism - 1) / parallelism;
+
+        Chunk[] chunks = new Chunk[parallelism];
+        long position = segment.address();
+        long limit = position + size;
+
+        for (int i = 0; i < parallelism; i++) {
+            long end = next(Math.min(position + chunk, limit), limit);
+            chunks[i] = new Chunk(position, end);
+            position = end;
+        }
+
+        return chunks;
+    }
+
+    private static long next(long position, long limit) {
+        while (position < limit && UNSAFE.getByte(position++) != '\n') {
+        }
+
+        return position;
     }
 
     private static long word(long address) {
@@ -238,7 +248,7 @@ public class CalculateAverage_artsiomkorzun_cmov {
             }
         }
 
-        public void merge(Aggregates rights) {
+        public Aggregates merge(Aggregates rights) {
             for (long rightOffset = 0; rightOffset < SIZE; rightOffset += 128) {
                 long rightAddress = rights.pointer + rightOffset;
                 int length = UNSAFE.getInt(rightAddress);
@@ -273,6 +283,8 @@ public class CalculateAverage_artsiomkorzun_cmov {
                     }
                 }
             }
+
+            return this;
         }
 
         public Map<String, Aggregate> build() {
@@ -353,119 +365,96 @@ public class CalculateAverage_artsiomkorzun_cmov {
 
     private static class Aggregator extends Thread {
 
-        private final AtomicInteger counter;
-        private final AtomicReference<Aggregates> result;
-        private final long fileAddress;
-        private final long fileSize;
-        private final int segmentCount;
+        private final long fileStart;
+        private final long fileEnd;
+        Aggregates result;
 
-        public Aggregator(AtomicInteger counter, AtomicReference<Aggregates> result,
-                          long fileAddress, long fileSize, int segmentCount) {
+        public Aggregator(long fileStart, long fileEnd) {
             super("aggregator");
-            this.counter = counter;
-            this.result = result;
-            this.fileAddress = fileAddress;
-            this.fileSize = fileSize;
-            this.segmentCount = segmentCount;
+            this.fileStart = fileStart;
+            this.fileEnd = fileEnd;
         }
 
         @Override
         public void run() {
             Aggregates aggregates = new Aggregates();
 
-            for (int segment; (segment = counter.getAndIncrement()) < segmentCount; ) {
-                long position = SEGMENT_SIZE * segment;
-                long size = Math.min(SEGMENT_SIZE + 1, fileSize - position);
-                long start = fileAddress + position;
-                long end = start + size;
+            long chunk = (fileEnd - fileStart) / 3;
+            long left = next(fileStart + chunk);
+            long right = next(fileStart + chunk + chunk);
 
-                if (segment > 0) {
-                    start = next(start);
-                }
+            Chunk chunk1 = new Chunk(fileStart, left);
+            Chunk chunk2 = new Chunk(left, right);
+            Chunk chunk3 = new Chunk(right, fileEnd);
 
-                long chunk = (end - start) / 3;
-                long left = next(start + chunk);
-                long right = next(start + chunk + chunk);
+            while (chunk1.has() && chunk2.has() && chunk3.has()) {
+                long word1 = word(chunk1.position);
+                long word2 = word(chunk2.position);
+                long word3 = word(chunk3.position);
+                long word4 = word(chunk1.position + 8);
+                long word5 = word(chunk2.position + 8);
+                long word6 = word(chunk3.position + 8);
 
-                Chunk chunk1 = new Chunk(start, left);
-                Chunk chunk2 = new Chunk(left, right);
-                Chunk chunk3 = new Chunk(right, end);
+                long separator1 = separator(word1);
+                long separator2 = separator(word2);
+                long separator3 = separator(word3);
+                long separator4 = separator(word4);
+                long separator5 = separator(word5);
+                long separator6 = separator(word6);
 
-                while (chunk1.has() && chunk2.has() && chunk3.has()) {
-                    long word1 = word(chunk1.position);
-                    long word2 = word(chunk2.position);
-                    long word3 = word(chunk3.position);
-                    long word4 = word(chunk1.position + 8);
-                    long word5 = word(chunk2.position + 8);
-                    long word6 = word(chunk3.position + 8);
+                long pointer1 = find(aggregates, chunk1, word1, word4, separator1, separator4);
+                long pointer2 = find(aggregates, chunk2, word2, word5, separator2, separator5);
+                long pointer3 = find(aggregates, chunk3, word3, word6, separator3, separator6);
 
-                    long separator1 = separator(word1);
-                    long separator2 = separator(word2);
-                    long separator3 = separator(word3);
-                    long separator4 = separator(word4);
-                    long separator5 = separator(word5);
-                    long separator6 = separator(word6);
+                long value1 = value(chunk1);
+                long value2 = value(chunk2);
+                long value3 = value(chunk3);
 
-                    long pointer1 = find(aggregates, chunk1, word1, word4, separator1, separator4);
-                    long pointer2 = find(aggregates, chunk2, word2, word5, separator2, separator5);
-                    long pointer3 = find(aggregates, chunk3, word3, word6, separator3, separator6);
-
-                    long value1 = value(chunk1);
-                    long value2 = value(chunk2);
-                    long value3 = value(chunk3);
-
-                    Aggregates.update(pointer1, value1);
-                    Aggregates.update(pointer2, value2);
-                    Aggregates.update(pointer3, value3);
-                }
-
-                while (chunk1.has()) {
-                    long word1 = word(chunk1.position);
-                    long word2 = word(chunk1.position + 8);
-
-                    long separator1 = separator(word1);
-                    long separator2 = separator(word2);
-
-                    long pointer = find(aggregates, chunk1, word1, word2, separator1, separator2);
-                    long value = value(chunk1);
-
-                    Aggregates.update(pointer, value);
-                }
-
-                while (chunk2.has()) {
-                    long word1 = word(chunk2.position);
-                    long word2 = word(chunk2.position + 8);
-
-                    long separator1 = separator(word1);
-                    long separator2 = separator(word2);
-
-                    long pointer = find(aggregates, chunk2, word1, word2, separator1, separator2);
-                    long value = value(chunk2);
-
-                    Aggregates.update(pointer, value);
-                }
-
-                while (chunk3.has()) {
-                    long word1 = word(chunk3.position);
-                    long word2 = word(chunk3.position + 8);
-
-                    long separator1 = separator(word1);
-                    long separator2 = separator(word2);
-
-                    long pointer = find(aggregates, chunk3, word1, word2, separator1, separator2);
-                    long value = value(chunk3);
-
-                    Aggregates.update(pointer, value);
-                }
+                Aggregates.update(pointer1, value1);
+                Aggregates.update(pointer2, value2);
+                Aggregates.update(pointer3, value3);
             }
 
-            while (!result.compareAndSet(null, aggregates)) {
-                Aggregates rights = result.getAndSet(null);
+            while (chunk1.has()) {
+                long word1 = word(chunk1.position);
+                long word2 = word(chunk1.position + 8);
 
-                if (rights != null) {
-                    aggregates.merge(rights);
-                }
+                long separator1 = separator(word1);
+                long separator2 = separator(word2);
+
+                long pointer = find(aggregates, chunk1, word1, word2, separator1, separator2);
+                long value = value(chunk1);
+
+                Aggregates.update(pointer, value);
             }
+
+            while (chunk2.has()) {
+                long word1 = word(chunk2.position);
+                long word2 = word(chunk2.position + 8);
+
+                long separator1 = separator(word1);
+                long separator2 = separator(word2);
+
+                long pointer = find(aggregates, chunk2, word1, word2, separator1, separator2);
+                long value = value(chunk2);
+
+                Aggregates.update(pointer, value);
+            }
+
+            while (chunk3.has()) {
+                long word1 = word(chunk3.position);
+                long word2 = word(chunk3.position + 8);
+
+                long separator1 = separator(word1);
+                long separator2 = separator(word2);
+
+                long pointer = find(aggregates, chunk3, word1, word2, separator1, separator2);
+                long value = value(chunk3);
+
+                Aggregates.update(pointer, value);
+            }
+
+            result = aggregates;
         }
 
         private static long next(long position) {
@@ -490,12 +479,13 @@ public class CalculateAverage_artsiomkorzun_cmov {
             long word;
 
             if (small) {
-                long mask2 = (separator1 == 0) ? -1 : 0; // cmov
+                int length1 = length(separator1);
+                int length2 = length(separator2);
                 word1 = mask(word1, separator1);
-                word2 = mask(word2 & mask2, separator2);
+                word2 = mask(word2 & WORD_MASK[length1], separator2);
                 hash = mix(word1 ^ word2);
 
-                chunk.position += length(separator1) + (length(separator2) & mask2) + 1;
+                chunk.position += length1 + (length2 & LENGTH_MASK[length1]) + 1;
                 long pointer = aggregates.find(word1, word2, hash);
 
                 if (pointer != 0) {
@@ -554,6 +544,8 @@ public class CalculateAverage_artsiomkorzun_cmov {
             long h = x * -7046029254386353131L;
             h ^= h >>> 35;
             return h;
+            // h ^= h >>> 32;
+            // return (int) (h ^ h >>> 16);
         }
 
         private static long dot(long num) {

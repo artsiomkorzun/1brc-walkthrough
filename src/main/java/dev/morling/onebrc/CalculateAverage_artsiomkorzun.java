@@ -39,8 +39,8 @@ public class CalculateAverage_artsiomkorzun {
     private static final long LINE_PATTERN = 0x0A0A0A0A0A0A0A0AL;
     private static final long DOT_BITS = 0x10101000;
     private static final long MAGIC_MULTIPLIER = (100 * 0x1000000 + 10 * 0x10000 + 1);
-    private static final long[] WORD_MASK = { 0, 0, 0, 0, 0, 0, 0, 0, -1 };
-    private static final int[] LENGTH_MASK = { 0, 0, 0, 0, 0, 0, 0, 0, -1 };
+    private static final long[] WORD_MASK = {0, 0, 0, 0, 0, 0, 0, 0, -1};
+    private static final int[] LENGTH_MASK = {0, 0, 0, 0, 0, 0, 0, 0, -1};
 
     private static final Unsafe UNSAFE;
 
@@ -49,8 +49,7 @@ public class CalculateAverage_artsiomkorzun {
             Field unsafe = Unsafe.class.getDeclaredField("theUnsafe");
             unsafe.setAccessible(true);
             UNSAFE = (Unsafe) unsafe.get(Unsafe.class);
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
@@ -134,8 +133,7 @@ public class CalculateAverage_artsiomkorzun {
         try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
             long size = channel.size();
             return channel.map(FileChannel.MapMode.READ_ONLY, 0, size, Arena.global());
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
@@ -200,7 +198,7 @@ public class CalculateAverage_artsiomkorzun {
         }
 
         public long put(long reference, long word, long length, long hash) {
-            for (long offset = offset(hash);; offset = next(offset)) {
+            for (long offset = offset(hash); ; offset = next(offset)) {
                 long address = pointer + offset;
                 if (equal(reference, word, address + 24, length)) {
                     return address;
@@ -243,7 +241,7 @@ public class CalculateAverage_artsiomkorzun {
 
                 int hash = UNSAFE.getInt(rightAddress + 4);
 
-                for (long offset = offset(hash);; offset = next(offset)) {
+                for (long offset = offset(hash); ; offset = next(offset)) {
                     long address = pointer + offset;
 
                     if (equal(address + 24, rightAddress + 24, length)) {
@@ -367,7 +365,7 @@ public class CalculateAverage_artsiomkorzun {
         public void run() {
             Aggregates aggregates = new Aggregates();
 
-            for (int segment; (segment = counter.getAndIncrement()) < segmentCount;) {
+            for (int segment; (segment = counter.getAndIncrement()) < segmentCount; ) {
                 long position = SEGMENT_SIZE * segment;
                 long size = Math.min(SEGMENT_SIZE + 1, fileSize - position);
                 long start = fileAddress + position;
@@ -498,8 +496,7 @@ public class CalculateAverage_artsiomkorzun {
                 }
 
                 word = (separator1 == 0) ? word2 : word1;
-            }
-            else {
+            } else {
                 chunk.position += 16;
                 hash = word1 ^ word2;
 

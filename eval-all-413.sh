@@ -31,12 +31,14 @@ done
 rm measurements.txt
 ln -s $FILE measurements.txt
 
+export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/97.json"
+echo "Evaluating #97"
+./eval-artsiomkorzun.sh
+
 export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/98.json"
 echo "Evaluating #98"
-./eval-artsiomkorzun.sh
+./eval-artsiomkorzun-nosharing.sh
 
 export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/99.json"
 echo "Evaluating #99"
 ./eval-artsiomkorzun-cmov.sh
-
-
