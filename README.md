@@ -33,7 +33,7 @@ Results are collected using hyperfine with 3 warmups and 10 measurements. The pr
 |07| BranchyTemperature   |   4.253 ± 0.163|    -19.20|   7.121 ± 0.506|  -13.79|
 |08| UnsafeParsing        |   3.894 ± 0.108|     -8.43|   6.610 ± 0.710|   -7.18|
 |09| NoKeyCopy            |   3.384 ± 0.032|    -13.10|   7.192 ± 0.075|    8.81|
-|10| SwarStation          |   2.103 ± 0.079|    -37.87|   7.286 ± 0.070|    1.30|
+|10| SwarStation (*)      |   2.103 ± 0.079|    -37.87|   7.286 ± 0.070|    1.30|
 |11| SwarTemperature      |   1.850 ± 0.044|    -12.01|   6.991 ± 0.125|   -4.04|
 |12| BetterHash           |   1.806 ± 0.052|     -2.40|   2.919 ± 0.148|  -58.25|
 |13| BetterMap            |   1.780 ± 0.036|     -1.42|   2.283 ± 0.018|  -21.80|
@@ -49,3 +49,5 @@ Results are collected using hyperfine with 3 warmups and 10 measurements. The pr
 |23| Subprocess           |   0.868 ± 0.006|    -12.94|   1.694 ± 0.010|   -9.41|
 |98| Original             |   0.859 ± 0.004|     -1.02|   1.666 ± 0.009|   -1.65|
 |99| Original + CMOV      |   0.875 ± 0.007|      1.83|   1.681 ± 0.009|    0.89|
+
+* (*) hash function is affected, improving SwarStation change for 413 dramatically and worsening 10k.
