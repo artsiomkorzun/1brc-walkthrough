@@ -1,7 +1,7 @@
 # 1brc-walkthrough
 The step-by-step walkthrough over 1brc challenge.
 
-## Preparations
+## Prerequisites
 Install Open JDK and GraalVM JDK using sdkman:
 ``` bash
 curl -s "https://get.sdkman.io" | bash
@@ -13,6 +13,16 @@ sdk install java 21.0.2-graal
 Install toolchain for GraalVM native-image: https://www.graalvm.org/22.0/reference-manual/native-image/#prerequisites.
 
 Install hyperfine: https://github.com/sharkdp/hyperfine.
+
+# Run
+```bash
+ # tests might fail because they are run in one jvm, some solutions do not cleanup resources
+./gradlew clean build -x test
+ # generates 413 and 10k files
+./generate-all.sh
+ # evaluates 413 and 10k cases with all solutions
+./eval-all.sh 
+```
 
 ## Results
 Results are collected using hyperfine with 3 warmups and 10 measurements. The process is pinned to the first 8 cpus using taskset 0-7.

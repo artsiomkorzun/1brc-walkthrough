@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 #  Copyright 2023 The original authors
 #
@@ -21,11 +21,12 @@ FILE=measurements.10k.1B.txt
 rm -r results/$NAME/
 mkdir -p results/$NAME/
 
-for i in {00..23}
+for i in {0..23}
 do
-  export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/$i.json"
-  echo "Evaluating #$i"
-  ./eval-$i.sh $FILE
+  number=$(printf "%02d" $i)
+  export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/$number.json"
+  echo "Evaluating #$number"
+  ./eval-$number.sh $FILE
 done
 
 rm measurements.txt
