@@ -50,4 +50,4 @@ Results are collected using hyperfine with 3 warmups and 10 measurements. The pr
 |98| Original             |   0.859 ± 0.004|     -1.02|   1.666 ± 0.009|   -1.65|
 |99| Original + CMOV      |   0.875 ± 0.007|      1.83|   1.681 ± 0.009|    0.89|
 
-* (*) hash function is affected, improving SwarStation change for 413 dramatically and worsening 10k.
+* (*) hash function is affected, improving SwarStation change for 413 dramatically and worsening 10k a bit.
