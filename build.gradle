@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+group = 'dev.1brc'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.1'
+}
+
+compileJava {
+    options.compilerArgs += ['--enable-preview']
+}
+
+test {
+    jvmArgs += ['--enable-preview']
+    useJUnitPlatform()
+}
+
+task zip(type: Zip, dependsOn: 'build') {
+    from './'
+    include '*.sh'
+    include 'data/*'
+    include 'build/libs/*'
+    archiveFileName = 'benchmark.zip'
+    destinationDirectory = file('build/archives/')
+}
