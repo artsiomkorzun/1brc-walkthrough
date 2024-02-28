@@ -1,0 +1,24 @@
+# started on Wed Feb 28 16:27:10 2024
+
+
+ Performance counter stats for '/home/ec2-user/.sdkman/candidates/java/21.0.2-open/bin/java -cp build/libs/1brc-walkthrough-1.0-SNAPSHOT.jar -Xmx4g -Xms4g -XX:+UseParallelGC --enable-preview dev.akorzun.onebrc.Challenge_08_UnsafeParsing -i measurements.413.1B.txt':
+
+          28558.74 msec task-clock:u                     #    7.629 CPUs utilized          
+                 0      context-switches:u               #    0.000 /sec                   
+                 0      cpu-migrations:u                 #    0.000 /sec                   
+            220946      page-faults:u                    #    7.737 K/sec                  
+      103057476008      cycles:u                         #    3.609 GHz                      (62.43%)
+                 0      stalled-cycles-frontend:u                                            (62.37%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (62.48%)
+      340374963753      instructions:u                   #    3.30  insn per cycle           (62.60%)
+       54151949059      branches:u                       #    1.896 G/sec                    (62.74%)
+        1402584681      branch-misses:u                  #    2.59% of all branches          (62.77%)
+        3195618974      cache-references:u               #  111.896 M/sec                    (62.72%)
+          26562936      cache-misses:u                   #    0.831 % of all cache refs      (62.57%)
+
+       3.743223029 seconds time elapsed
+
+      28.128449000 seconds user
+       0.430289000 seconds sys
+
+

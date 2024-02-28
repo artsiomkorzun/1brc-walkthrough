@@ -1,0 +1,24 @@
+# started on Wed Feb 28 16:27:49 2024
+
+
+ Performance counter stats for 'build/image-artsiomkorzun':
+
+           6458.53 msec task-clock:u                     #    7.931 CPUs utilized          
+                 0      context-switches:u               #    0.000 /sec                   
+                 0      cpu-migrations:u                 #    0.000 /sec                   
+            227640      page-faults:u                    #   35.246 K/sec                  
+       22538075109      cycles:u                         #    3.490 GHz                      (62.75%)
+                 0      stalled-cycles-frontend:u                                            (62.84%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (62.84%)
+      111417221295      instructions:u                   #    4.94  insn per cycle           (62.85%)
+        8493444967      branches:u                       #    1.315 G/sec                    (62.85%)
+          31427805      branch-misses:u                  #    0.37% of all branches          (62.19%)
+        1040097048      cache-references:u               #  161.042 M/sec                    (62.09%)
+           9513801      cache-misses:u                   #    0.915 % of all cache refs      (62.87%)
+
+       0.814362879 seconds time elapsed
+
+       0.002972000 seconds user
+       0.000000000 seconds sys
+
+

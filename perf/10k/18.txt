@@ -1,0 +1,24 @@
+# started on Wed Feb 28 16:40:58 2024
+
+
+ Performance counter stats for 'build/image-18 -i measurements.10k.1B.txt':
+
+          16260.17 msec task-clock:u                     #    3.839 CPUs utilized          
+                 0      context-switches:u               #    0.000 /sec                   
+                 0      cpu-migrations:u                 #    0.000 /sec                   
+            278441      page-faults:u                    #   17.124 K/sec                  
+       46527631889      cycles:u                         #    2.861 GHz                      (62.57%)
+                 0      stalled-cycles-frontend:u                                            (62.71%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (62.73%)
+      119835513493      instructions:u                   #    2.58  insn per cycle           (62.74%)
+       14388832867      branches:u                       #  884.913 M/sec                    (62.74%)
+         598931405      branch-misses:u                  #    4.16% of all branches          (62.45%)
+        2139731925      cache-references:u               #  131.593 M/sec                    (62.26%)
+         533008060      cache-misses:u                   #   24.910 % of all cache refs      (62.56%)
+
+       4.235826692 seconds time elapsed
+
+      15.499800000 seconds user
+       0.759520000 seconds sys
+
+

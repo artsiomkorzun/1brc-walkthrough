@@ -1,0 +1,24 @@
+# started on Wed Feb 28 16:27:43 2024
+
+
+ Performance counter stats for 'build/image-20 -i measurements.413.1B.txt':
+
+           9617.92 msec task-clock:u                     #    7.242 CPUs utilized          
+                 0      context-switches:u               #    0.000 /sec                   
+                 0      cpu-migrations:u                 #    0.000 /sec                   
+            227267      page-faults:u                    #   23.630 K/sec                  
+       33739793568      cycles:u                         #    3.508 GHz                      (62.02%)
+                 0      stalled-cycles-frontend:u                                            (61.95%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (62.03%)
+      109156620005      instructions:u                   #    3.24  insn per cycle           (62.71%)
+        9081849578      branches:u                       #  944.264 M/sec                    (63.97%)
+          30722499      branch-misses:u                  #    0.34% of all branches          (63.64%)
+        1060488633      cache-references:u               #  110.262 M/sec                    (63.04%)
+           8264405      cache-misses:u                   #    0.779 % of all cache refs      (62.12%)
+
+       1.328066251 seconds time elapsed
+
+       9.266195000 seconds user
+       0.351382000 seconds sys
+
+

@@ -1,0 +1,24 @@
+# started on Wed Feb 28 16:41:21 2024
+
+
+ Performance counter stats for 'build/image-artsiomkorzun-nosharing':
+
+          16614.95 msec task-clock:u                     #    7.782 CPUs utilized          
+                 0      context-switches:u               #    0.000 /sec                   
+                 0      cpu-migrations:u                 #    0.000 /sec                   
+            278476      page-faults:u                    #   16.761 K/sec                  
+       46342515204      cycles:u                         #    2.789 GHz                      (62.01%)
+                 0      stalled-cycles-frontend:u                                            (62.20%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (62.61%)
+      127696504260      instructions:u                   #    2.76  insn per cycle           (62.89%)
+       11947570520      branches:u                       #  719.085 M/sec                    (63.02%)
+         462089439      branch-misses:u                  #    3.87% of all branches          (63.11%)
+        2133649373      cache-references:u               #  128.417 M/sec                    (62.77%)
+         517465136      cache-misses:u                   #   24.253 % of all cache refs      (62.28%)
+
+       2.134931097 seconds time elapsed
+
+       0.001820000 seconds user
+       0.002744000 seconds sys
+
+

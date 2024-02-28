@@ -1,0 +1,24 @@
+# started on Wed Feb 28 16:41:24 2024
+
+
+ Performance counter stats for 'build/image-artsiomkorzun-cmov':
+
+          16304.18 msec task-clock:u                     #    7.932 CPUs utilized          
+                 0      context-switches:u               #    0.000 /sec                   
+                 0      cpu-migrations:u                 #    0.000 /sec                   
+            278476      page-faults:u                    #   17.080 K/sec                  
+       45530684867      cycles:u                         #    2.793 GHz                      (62.03%)
+                 0      stalled-cycles-frontend:u                                            (62.64%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (63.03%)
+      133472811972      instructions:u                   #    2.93  insn per cycle           (63.17%)
+       12743256833      branches:u                       #  781.595 M/sec                    (63.21%)
+         468871087      branch-misses:u                  #    3.68% of all branches          (62.80%)
+        2115432329      cache-references:u               #  129.748 M/sec                    (62.32%)
+         531018560      cache-misses:u                   #   25.102 % of all cache refs      (61.81%)
+
+       2.055599535 seconds time elapsed
+
+       0.004135000 seconds user
+       0.000000000 seconds sys
+
+

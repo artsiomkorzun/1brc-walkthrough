@@ -1,0 +1,24 @@
+# started on Wed Feb 28 16:41:15 2024
+
+
+ Performance counter stats for 'build/image-23 -i measurements.10k.1B.txt':
+
+          16291.45 msec task-clock:u                     #    7.930 CPUs utilized          
+                 0      context-switches:u               #    0.000 /sec                   
+                 0      cpu-migrations:u                 #    0.000 /sec                   
+            278848      page-faults:u                    #   17.116 K/sec                  
+       45386973030      cycles:u                         #    2.786 GHz                      (61.67%)
+                 0      stalled-cycles-frontend:u                                            (62.15%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (62.96%)
+      133553348284      instructions:u                   #    2.94  insn per cycle           (63.14%)
+       12747344746      branches:u                       #  782.456 M/sec                    (63.18%)
+         462586197      branch-misses:u                  #    3.63% of all branches          (62.98%)
+        2131818767      cache-references:u               #  130.855 M/sec                    (62.46%)
+         524700175      cache-misses:u                   #   24.613 % of all cache refs      (61.96%)
+
+       2.054479393 seconds time elapsed
+
+       0.004762000 seconds user
+       0.000000000 seconds sys
+
+
