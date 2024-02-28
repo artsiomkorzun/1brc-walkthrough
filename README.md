@@ -14,7 +14,7 @@ Install toolchain for GraalVM native-image: https://www.graalvm.org/22.0/referen
 
 Install hyperfine: https://github.com/sharkdp/hyperfine.
 
-# Run
+## Run
 ```bash
  # tests might fail because they are run in one jvm, some solutions do not cleanup resources
 ./gradlew clean build -x test
@@ -27,7 +27,7 @@ Install hyperfine: https://github.com/sharkdp/hyperfine.
 ## Results
 Results are collected using hyperfine with 3 warmups and 10 measurements. 
 
-## AWS c7a.4xlarge
+### AWS c7a.4xlarge
 * CPU: AMD EPYC 9R14
 * MEM: DDR5 4800 MT/s 32 GB
 * AFFINITY: 0-7
@@ -64,7 +64,7 @@ Results are collected using hyperfine with 3 warmups and 10 measurements.
 
 * (*) hash function is affected, improving SwarStation change for 413 dramatically and worsening 10k a bit.
 
-## MacBook Pro
+### MacBook Pro
 * CPU: Apple M1 Pro
 * MEM: 32 GB
 * AFFINITY: 0-9
