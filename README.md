@@ -99,4 +99,4 @@ Results are collected using hyperfine with 3 warmups and 10 measurements.
 | 98 | Original - Sharing |   1.008 ± 0.039 |            3.14 |   1.728 ± 0.026 |            4.87 |
 | 99 | Original + CMOV    |   0.870 ± 0.009 |          -10.98 |   1.578 ± 0.018 |           -4.21 |
 
-* (*) hash function is affected, improving SwarStation change for 413 dramatically and worsening 10k a bit.
+* (*) hash function is affected, improving SwarStation change for 413 and worsening 10k a bit dramatically.
