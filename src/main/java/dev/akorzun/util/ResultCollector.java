@@ -38,7 +38,9 @@ class ResultCollector {
                     number, name,
                     mean, error, mean / prev * 100 - 100);
 
-            prev = mean;
+            if (Integer.parseInt(number) <= 97) {
+                prev = mean;
+            }
         }
     }
 

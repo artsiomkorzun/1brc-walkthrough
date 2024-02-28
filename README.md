@@ -25,11 +25,12 @@ Install hyperfine: https://github.com/sharkdp/hyperfine.
 ```
 
 ## Results
-Results are collected using hyperfine with 3 warmups and 10 measurements. The process is pinned to the first 8 cpus using taskset 0-7.
+Results are collected using hyperfine with 3 warmups and 10 measurements. 
 
 ## AWS c7g.4xlarge
 * CPU: AMD EPYC 9R14
 * MEM: DDR5 4800 MT/s 32 GB
+* AFFINITY: 0-7
   
 |#|Change|Time (413)|Reduction (413)|Time (10k)|Reduction (10k)|
 |-|-|-:|-:|-:|-:|
@@ -59,5 +60,42 @@ Results are collected using hyperfine with 3 warmups and 10 measurements. The pr
 |23| Subprocess           |   0.868 ± 0.006|    -12.94|   1.694 ± 0.010|   -9.41|
 |98| Original             |   0.859 ± 0.004|     -1.02|   1.666 ± 0.009|   -1.65|
 |99| Original + CMOV      |   0.875 ± 0.007|      1.83|   1.681 ± 0.009|    0.89|
+
+* (*) hash function is affected, improving SwarStation change for 413 dramatically and worsening 10k a bit.
+
+## MacBook Pro
+* CPU: Apple M1 Pro
+* MEM: 32 GB
+* AFFINITY: 0-9
+
+|#| Change             |Time (413)| Reduction (413) |      Time (10k) |Reduction (10k)|
+|-|--------------------|-:|----------------:|----------------:|-:|
+|00| Baseline           |  189.903 ± 2.454|             0.0 | 270.058 ± 2.582 |     NaN|
+|01| NoGarbage          |   35.674 ± 0.105|          -81.21 |  68.160 ± 5.800 |  -74.76|
+|02| DirectBuffer       |   31.973 ± 0.060|          -10.37 |  50.690 ± 0.944 |  -25.63|
+|03| MappedSegment      |   32.329 ± 0.937|            1.11 |  63.941 ± 9.198 |   26.14|
+|04| Parallelism        |    4.560 ± 0.476|          -85.89 |   8.527 ± 0.611 |  -86.66|
+|05| HashWhileParsing   |    4.641 ± 0.834|            1.78 |   7.596 ± 0.500 |  -10.93|
+|06| SimpleMap          |    3.782 ± 0.128|          -18.52 |   5.928 ± 0.480 |  -21.95|
+|07| BranchyTemperature |    3.453 ± 0.048|           -8.70 |   6.980 ± 0.187 |   17.73|
+|08| UnsafeParsing      |    3.073 ± 0.027|          -11.01 |   4.918 ± 0.390 |  -29.53|
+|09| NoKeyCopy          |    2.573 ± 0.065|          -16.27 |   4.311 ± 0.047 |  -12.36|
+|10| SwarStation (*)    |    1.899 ± 0.022|          -26.20 |   9.243 ± 0.160 |  114.42|
+|11| SwarTemperature    |    2.067 ± 0.036|            8.83 |   9.160 ± 0.091 |   -0.90|
+|12| BetterHash         |    2.010 ± 0.046|           -2.72 |   2.574 ± 0.053 |  -71.90|
+|13| BetterMap          |    1.798 ± 0.022|          -10.58 |   2.159 ± 0.057 |  -16.11|
+|14| ParallelismSharing |    1.874 ± 0.022|            4.27 |   2.244 ± 0.090 |    3.92|
+|15| ParallelismMerging |    1.879 ± 0.023|            0.22 |   2.233 ± 0.080 |   -0.52|
+|16| Graal JIT          |    1.839 ± 0.043|           -2.12 |   2.135 ± 0.069 |   -4.37|
+|17| Graal AOT          |    1.633 ± 0.009|          -11.19 |   1.926 ± 0.031 |   -9.77|
+|18| BranchyMinMax      |    1.637 ± 0.009|            0.23 |   1.908 ± 0.014 |   -0.96|
+|19| Branchy08Loop      |    1.586 ± 0.007|           -3.13 |   1.919 ± 0.034 |    0.60|
+|20| Branchy16Loop      |    1.600 ± 0.023|            0.92 |   2.150 ± 0.034 |   12.02|
+|21| CMOV               |    1.464 ± 0.046|           -8.49 |   2.013 ± 0.015 |   -6.36|
+|22| ILP                |    0.910 ± 0.018|          -37.82 |   1.628 ± 0.030 |  -19.14|
+|23| Subprocess         |    0.907 ± 0.021|           -0.36 |   1.596 ± 0.020 |   -1.96|
+|97| Original           |    0.978 ± 0.035|            7.78 |   1.647 ± 0.014 |    3.22|
+|98| Original - Sharing |    1.008 ± 0.039|            3.14 |   1.728 ± 0.026 |    4.87|
+|99| Original + CMOV    |    0.870 ± 0.009|          -10.98 |   1.578 ± 0.018 |   -4.21|
 
 * (*) hash function is affected, improving SwarStation change for 413 dramatically and worsening 10k a bit.
