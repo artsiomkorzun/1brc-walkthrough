@@ -18,6 +18,7 @@ package dev.akorzun.onebrc;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -37,31 +38,27 @@ public class Challenge_00_Baseline implements Challenge {
 
     @Override
     public void solve(String[] args, Path file, PrintStream output) throws Exception {
-        Function<String, Measurement> parser = (line) -> {    // allocates one string for line
-            int index = line.indexOf(';');
-            String station = line.substring(0, index);        // allocates one string
-            double temperature = Double.parseDouble(line.substring(index + 1)); // allocates one string
-            return new Measurement(station, temperature);     // allocates one measurement
-        };
+        Map<String, Aggregate> result = Files.lines(file)             // sequential, uses 1 thread
+                .map((line) -> {                                      // allocates one string for line
+                    int comma = line.indexOf(';');
+                    String station = line.substring(0, comma);        // allocates one string
+                    double temperature = Double.parseDouble(line.substring(comma + 1)); // allocates one string
+                    return new Measurement(station, temperature);     // allocates one measurement
+                })
+                .collect(groupingBy(Measurement::station, Collector.of(
+                        Aggregate::new,
+                        (aggregate, measurement) -> {
+                            aggregate.min = Math.min(aggregate.min, measurement.temperature);
+                            aggregate.max = Math.max(aggregate.max, measurement.temperature);
+                            aggregate.sum += measurement.temperature;
+                            aggregate.cnt++;
+                        },
+                        (aggregate, aggregate2) -> {
+                            throw new IllegalStateException("No merge with 1 thread");
+                        }
+                )));
 
-        Supplier<Aggregate> supplier = Aggregate::new;
-
-        BiConsumer<Aggregate, Measurement> accumulator = (left, right) -> {
-            left.min = Math.min(left.min, right.temperature);
-            left.max = Math.max(left.max, right.temperature);
-            left.sum += right.temperature;
-            left.cnt++;
-        };
-
-        BinaryOperator<Aggregate> combiner = (left, right) -> {
-            throw new IllegalStateException("Not used with 1 thread");
-        };
-
-        TreeMap<String, Aggregate> result = Files.lines(file) // sequential, uses 1 thread
-                .map(parser)
-                .collect(groupingBy(Measurement::station, TreeMap::new, Collector.of(supplier, accumulator, combiner)));
-
-        output.println(result);
+        output.println(new TreeMap<>(result));
     }
 
     record Measurement(String station, double temperature) {
