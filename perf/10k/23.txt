@@ -1,24 +1,33 @@
-# started on Wed Feb 28 16:41:15 2024
+# started on Fri Mar  8 11:07:49 2024
 
 
- Performance counter stats for 'build/image-23 -i measurements.10k.1B.txt':
+ Performance counter stats for 'taskset -c 0-7 ./run-23.sh':
 
-          16291.45 msec task-clock:u                     #    7.930 CPUs utilized          
+          13013.61 msec task-clock:u                     #    7.148 CPUs utilized          
                  0      context-switches:u               #    0.000 /sec                   
                  0      cpu-migrations:u                 #    0.000 /sec                   
-            278848      page-faults:u                    #   17.116 K/sec                  
-       45386973030      cycles:u                         #    2.786 GHz                      (61.67%)
-                 0      stalled-cycles-frontend:u                                            (62.15%)
-                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (62.96%)
-      133553348284      instructions:u                   #    2.94  insn per cycle           (63.14%)
-       12747344746      branches:u                       #  782.456 M/sec                    (63.18%)
-         462586197      branch-misses:u                  #    3.63% of all branches          (62.98%)
-        2131818767      cache-references:u               #  130.855 M/sec                    (62.46%)
-         524700175      cache-misses:u                   #   24.613 % of all cache refs      (61.96%)
+            279646      page-faults:u                    #   21.489 K/sec                  
+       43509041370      cycles:u                         #    3.343 GHz                      (29.76%)
+                 0      stalled-cycles-frontend:u                                            (30.28%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (30.78%)
+      129577524756      instructions:u                   #    2.98  insn per cycle           (31.27%)
+       12490674964      branches:u                       #  959.816 M/sec                    (31.70%)
+         467453661      branch-misses:u                  #    3.74% of all branches          (31.65%)
+         513703704      cache-misses:u                   #   23.879 % of all cache refs      (31.32%)
+        2151283603      cache-references:u               #  165.310 M/sec                    (30.82%)
+                 0      L1-dcache-loads:u                #    0.000 /sec                     (30.13%)
+                 0      L1-dcache-load-misses:u          #    0.00% of all L1-dcache accesses  (29.51%)
+                 0      L1-dcache-prefetches:u           #    0.000 /sec                     (29.12%)
+                 0      L1-icache-loads:u                #    0.000 /sec                     (28.54%)
+                 0      L1-icache-load-misses:u          #    0.00% of all L1-icache accesses  (28.55%)
+         909016052      dTLB-loads:u                     #   69.851 M/sec                    (30.15%)
+           5655488      dTLB-load-misses:u               #    0.62% of all dTLB cache accesses  (29.93%)
+                 0      iTLB-loads:u                     #    0.000 /sec                     (29.71%)
+                 0      iTLB-load-misses:u               #    0.00% of all iTLB cache accesses  (29.49%)
 
-       2.054479393 seconds time elapsed
+       1.820672639 seconds time elapsed
 
-       0.004762000 seconds user
-       0.000000000 seconds sys
+      12.423623000 seconds user
+       0.590019000 seconds sys
 
 

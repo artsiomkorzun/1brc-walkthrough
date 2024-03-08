@@ -1,24 +1,33 @@
-# started on Wed Feb 28 16:40:42 2024
+# started on Fri Mar  8 11:07:11 2024
 
 
- Performance counter stats for '/home/ec2-user/.sdkman/candidates/java/21.0.2-open/bin/java -cp build/libs/1brc-walkthrough-1.0-SNAPSHOT.jar -Xmx4g -Xms4g -XX:+UseParallelGC --enable-preview dev.akorzun.onebrc.Challenge_14_ParallelismSharing -i measurements.10k.1B.txt':
+ Performance counter stats for 'taskset -c 0-7 ./run-14.sh':
 
-          19276.29 msec task-clock:u                     #    7.212 CPUs utilized          
+          15702.14 msec task-clock:u                     #    7.002 CPUs utilized          
                  0      context-switches:u               #    0.000 /sec                   
                  0      cpu-migrations:u                 #    0.000 /sec                   
-            289119      page-faults:u                    #   14.999 K/sec                  
-       55483182959      cycles:u                         #    2.878 GHz                      (63.12%)
-                 0      stalled-cycles-frontend:u                                            (62.70%)
-                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (62.41%)
-      140935776557      instructions:u                   #    2.54  insn per cycle           (62.04%)
-       12270995691      branches:u                       #  636.585 M/sec                    (62.27%)
-         611393343      branch-misses:u                  #    4.98% of all branches          (62.55%)
-        2226251586      cache-references:u               #  115.492 M/sec                    (62.84%)
-         554901587      cache-misses:u                   #   24.925 % of all cache refs      (62.98%)
+            290450      page-faults:u                    #   18.497 K/sec                  
+       52119036121      cycles:u                         #    3.319 GHz                      (29.71%)
+                 0      stalled-cycles-frontend:u                                            (29.65%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (29.72%)
+      138626946550      instructions:u                   #    2.66  insn per cycle           (30.34%)
+        9500460956      branches:u                       #  605.043 M/sec                    (31.12%)
+         579889140      branch-misses:u                  #    6.10% of all branches          (31.64%)
+         555652860      cache-misses:u                   #   25.154 % of all cache refs      (31.94%)
+        2209031157      cache-references:u               #  140.683 M/sec                    (32.02%)
+                 0      L1-dcache-loads:u                #    0.000 /sec                     (31.42%)
+                 0      L1-dcache-load-misses:u          #    0.00% of all L1-dcache accesses  (30.84%)
+                 0      L1-dcache-prefetches:u           #    0.000 /sec                     (30.40%)
+                 0      L1-icache-loads:u                #    0.000 /sec                     (29.71%)
+                 0      L1-icache-load-misses:u          #    0.00% of all L1-icache accesses  (29.52%)
+         969075739      dTLB-loads:u                     #   61.716 M/sec                    (29.70%)
+           6696935      dTLB-load-misses:u               #    0.69% of all dTLB cache accesses  (29.74%)
+              1524      iTLB-loads:u                     #   97.057 /sec                     (29.71%)
+                 0      iTLB-load-misses:u               #    0.00% of all iTLB cache accesses  (29.47%)
 
-       2.672763521 seconds time elapsed
+       2.242666417 seconds time elapsed
 
-      18.665199000 seconds user
-       0.610169000 seconds sys
+      15.021258000 seconds user
+       0.679521000 seconds sys
 
 

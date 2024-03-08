@@ -1,0 +1,33 @@
+# started on Fri Mar  8 11:07:53 2024
+
+
+ Performance counter stats for 'taskset -c 0-7 ./run-24.sh':
+
+          12793.55 msec task-clock:u                     #    7.903 CPUs utilized          
+                 0      context-switches:u               #    0.000 /sec                   
+                 0      cpu-migrations:u                 #    0.000 /sec                   
+            280053      page-faults:u                    #   21.890 K/sec                  
+       43461403189      cycles:u                         #    3.397 GHz                      (29.63%)
+                 0      stalled-cycles-frontend:u                                            (30.08%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (30.53%)
+      129988461898      instructions:u                   #    2.99  insn per cycle           (30.98%)
+       12513384583      branches:u                       #  978.101 M/sec                    (31.36%)
+         461881613      branch-misses:u                  #    3.69% of all branches          (31.46%)
+         510076816      cache-misses:u                   #   23.466 % of all cache refs      (31.22%)
+        2173689333      cache-references:u               #  169.905 M/sec                    (30.95%)
+                 0      L1-dcache-loads:u                #    0.000 /sec                     (30.37%)
+                 0      L1-dcache-load-misses:u          #    0.00% of all L1-dcache accesses  (30.06%)
+                 0      L1-dcache-prefetches:u           #    0.000 /sec                     (29.48%)
+                 0      L1-icache-loads:u                #    0.000 /sec                     (28.90%)
+                 0      L1-icache-load-misses:u          #    0.00% of all L1-icache accesses  (28.41%)
+         944066243      dTLB-loads:u                     #   73.792 M/sec                    (29.06%)
+           5687071      dTLB-load-misses:u               #    0.60% of all dTLB cache accesses  (29.93%)
+                 0      iTLB-loads:u                     #    0.000 /sec                     (29.74%)
+                 0      iTLB-load-misses:u               #    0.00% of all iTLB cache accesses  (29.54%)
+
+       1.618913374 seconds time elapsed
+
+       0.005690000 seconds user
+       0.000000000 seconds sys
+
+

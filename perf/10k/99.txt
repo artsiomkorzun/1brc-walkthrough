@@ -1,24 +1,33 @@
-# started on Wed Feb 28 16:41:24 2024
+# started on Fri Mar  8 11:08:03 2024
 
 
- Performance counter stats for 'build/image-artsiomkorzun-cmov':
+ Performance counter stats for 'taskset -c 0-7 ./run-99.sh':
 
-          16304.18 msec task-clock:u                     #    7.932 CPUs utilized          
+          12978.98 msec task-clock:u                     #    7.556 CPUs utilized          
                  0      context-switches:u               #    0.000 /sec                   
                  0      cpu-migrations:u                 #    0.000 /sec                   
-            278476      page-faults:u                    #   17.080 K/sec                  
-       45530684867      cycles:u                         #    2.793 GHz                      (62.03%)
-                 0      stalled-cycles-frontend:u                                            (62.64%)
-                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (63.03%)
-      133472811972      instructions:u                   #    2.93  insn per cycle           (63.17%)
-       12743256833      branches:u                       #  781.595 M/sec                    (63.21%)
-         468871087      branch-misses:u                  #    3.68% of all branches          (62.80%)
-        2115432329      cache-references:u               #  129.748 M/sec                    (62.32%)
-         531018560      cache-misses:u                   #   25.102 % of all cache refs      (61.81%)
+            279690      page-faults:u                    #   21.549 K/sec                  
+       44387399965      cycles:u                         #    3.420 GHz                      (29.35%)
+                 0      stalled-cycles-frontend:u                                            (30.04%)
+                 0      stalled-cycles-backend:u         #    0.00% backend cycles idle      (30.42%)
+      124311562561      instructions:u                   #    2.80  insn per cycle           (30.75%)
+       11730319804      branches:u                       #  903.794 M/sec                    (31.08%)
+         464279631      branch-misses:u                  #    3.96% of all branches          (31.15%)
+         502959863      cache-misses:u                   #   23.890 % of all cache refs      (31.12%)
+        2105282427      cache-references:u               #  162.207 M/sec                    (30.79%)
+                 0      L1-dcache-loads:u                #    0.000 /sec                     (30.70%)
+                 0      L1-dcache-load-misses:u          #    0.00% of all L1-dcache accesses  (30.35%)
+                 0      L1-dcache-prefetches:u           #    0.000 /sec                     (29.99%)
+                 0      L1-icache-loads:u                #    0.000 /sec                     (29.61%)
+                 0      L1-icache-load-misses:u          #    0.00% of all L1-icache accesses  (29.57%)
+         943775092      dTLB-loads:u                     #   72.716 M/sec                    (29.73%)
+           5930525      dTLB-load-misses:u               #    0.63% of all dTLB cache accesses  (29.37%)
+                55      iTLB-loads:u                     #    4.238 /sec                     (29.02%)
+                 0      iTLB-load-misses:u               #    0.00% of all iTLB cache accesses  (28.79%)
 
-       2.055599535 seconds time elapsed
+       1.717689509 seconds time elapsed
 
-       0.004135000 seconds user
+       0.005640000 seconds user
        0.000000000 seconds sys
 
 
