@@ -17,14 +17,11 @@
 
 JAVA_OPEN=~/.sdkman/candidates/java/21.0.2-open/bin/java
 JAVA_GRAAL=~/.sdkman/candidates/java/21.0.2-graal/bin/java
+JAVA_OPTS="-Xmx4g -Xms4g -XX:+UseParallelGC --enable-preview"
+
 NATIVE_IMAGE=~/.sdkman/candidates/java/21.0.2-graal/bin/native-image
 NATIVE_MARCH=native
+NATIVE_IMAGE_OPTS="-H:+UnlockExperimentalVMOptions -H:TuneInlinerExploration=1 -H:-GenLoopSafepoints --gc=epsilon -O3 -march=$NATIVE_MARCH -R:MaxHeapSize=64m --enable-preview"
 
 JAVA=$JAVA_OPEN
 JAVA_CP="-cp build/libs/1brc-walkthrough-1.0-SNAPSHOT.jar"
-
-TASKSET="taskset -c 0-7"
-HYPERFINE=hyperfine
-HYPERFINE_OPTS="--warmup 3 --runs 10 $HYPERFINE_EXTRA_OPTS"
-
-

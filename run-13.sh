@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 #  Copyright 2023 The original authors
 #
@@ -15,6 +15,6 @@
 #  limitations under the License.
 #
 
-# nohup ./eval-all.sh > eval.log 2> eval.err < /dev/null &
-./eval-all-413.sh
-./eval-all-10k.sh
+. ./env.sh
+
+$JAVA $JAVA_CP $JAVA_OPTS dev.akorzun.onebrc.Challenge_13_BetterHash $*

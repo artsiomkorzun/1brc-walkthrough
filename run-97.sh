@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 #  Copyright 2023 The original authors
 #
@@ -15,6 +15,13 @@
 #  limitations under the License.
 #
 
-# nohup ./eval-all.sh > eval.log 2> eval.err < /dev/null &
-./eval-all-413.sh
-./eval-all-10k.sh
+. ./env.sh
+
+CLASS_NAME=dev.morling.onebrc.CalculateAverage_artsiomkorzun
+IMAGE_NAME=build/image-97
+
+if ! [ -f $IMAGE_NAME ]; then
+    $NATIVE_IMAGE $NATIVE_IMAGE_OPTS --initialize-at-build-time=$CLASS_NAME $JAVA_CP -o $IMAGE_NAME $CLASS_NAME
+fi
+
+$IMAGE_NAME $*

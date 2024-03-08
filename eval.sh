@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 #  Copyright 2023 The original authors
 #
@@ -15,6 +15,6 @@
 #  limitations under the License.
 #
 
-# nohup ./eval-all.sh > eval.log 2> eval.err < /dev/null &
-./eval-all-413.sh
-./eval-all-10k.sh
+
+# do not set warmup to 0 unless you run already the scripts with native-image
+taskset -c 0-7 hyperfine --warmup 3 --runs 10 $HYPERFINE_EXTRA_OPTS "$1"

@@ -56,7 +56,7 @@ class ChallengeTest {
         }
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        new Challenge_00_Baseline().solve(new String[0], input, new PrintStream(stream));
+        new Challenge_01_Substring().solve(new String[0], input, new PrintStream(stream));
         String expected = stream.toString(StandardCharsets.UTF_8);
 
         for (Challenge implementation : implementations()) {

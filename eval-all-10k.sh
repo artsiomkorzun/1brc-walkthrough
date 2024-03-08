@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #  Copyright 2023 The original authors
 #
@@ -21,25 +21,21 @@ FILE=measurements.10k.1B.txt
 rm -r results/$NAME/
 mkdir -p results/$NAME/
 
-for i in {0..23}
+rm measurements.txt
+ln -s $FILE measurements.txt
+
+for i in {0..24}
 do
   number=$(printf "%02d" $i)
   export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/$number.json"
   echo "Evaluating #$number"
-  ./eval-$number.sh $FILE
+  ./eval.sh ./run-$number.sh
 done
 
-rm measurements.txt
-ln -s $FILE measurements.txt
-
-export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/97.json"
-echo "Evaluating #97"
-./eval-artsiomkorzun.sh
-
-export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/98.json"
-echo "Evaluating #98"
-./eval-artsiomkorzun-nosharing.sh
-
-export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/99.json"
-echo "Evaluating #99"
-./eval-artsiomkorzun-cmov.sh
+for i in {97..99}
+do
+  number=$i
+  export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/$number.json"
+  echo "Evaluating #$number"
+  ./eval.sh ./run-$number.sh
+done

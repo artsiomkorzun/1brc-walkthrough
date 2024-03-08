@@ -26,20 +26,20 @@ import static dev.akorzun.onebrc.Challenge.round;
 import static java.util.stream.Collectors.groupingBy;
 
 
-public class Challenge_00_Baseline implements Challenge {
+public class Challenge_01_Substring implements Challenge {
 
     public static void main(String[] args) {
-        new Challenge_00_Baseline().run(args);
+        new Challenge_01_Substring().run(args);
     }
 
     @Override
     public void solve(String[] args, Path file, PrintStream output) throws Exception {
         Map<String, Aggregate> result = Files.lines(file)             // sequential, uses 1 thread
-                .map((line) -> {
-                    String[] parts = line.split(";");           // look inside takes fast path, not regex
-                    String station = parts[0];
-                    double temperature = Double.parseDouble(parts[1]);
-                    return new Measurement(station, temperature);
+                .map((line) -> {                                      // allocates one string for line
+                    int comma = line.indexOf(';');
+                    String station = line.substring(0, comma);        // allocates one string
+                    double temperature = Double.parseDouble(line.substring(comma + 1)); // allocates one string
+                    return new Measurement(station, temperature);     // allocates one measurement
                 })
                 .collect(groupingBy(Measurement::station, Collector.of(
                         Aggregate::new,
