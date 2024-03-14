@@ -108,6 +108,6 @@ The table shows the number of collisions when a certain change affected hash fun
 | #  | Change      | Stations 413 | Stations 10k |
 |----|-------------|-------------:|-------------:|
 | 06 | SimpleMap   |            3 |        ~1053 | 
-| 10 | SwarStation |            8 |        ~3745 | 
-| 12 | BetterHash  |            1 |         ~712 |  
-| 13 | BetterMap   |            0 |         ~778 |
+| 11 | SwarStation |            8 |        ~3745 | 
+| 13 | BetterHash  |            1 |         ~712 |  
+| 14 | BetterMap   |            0 |         ~778 |
