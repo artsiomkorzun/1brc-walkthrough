@@ -1021,13 +1021,14 @@ Almost 0.5 million branch misses are gone. We missed each second row. Let's test
 | 20 | Branchy08Loop      |   1.372 ± 0.002 |           -3.03 |   1.871 ± 0.003 |            2.80 |
 | 21 | Branchy16Loop      |   1.332 ± 0.002 |           -2.87 |   1.995 ± 0.002 |            6.64 |
 
-Nice! The program executes more instructions but finish faster.
+Nice! The program executes more instructions but finishes faster.
 
 ### 22 - CMOV
 I came on the 1st of February and looked into the code and found one more trick I wanted to test. 
 Look at the lookup table. It contains a lot of 0's and only one -1. So we can replace:
 
 ```java
+   long[] MASK = {0, 0, 0, 0, 0, 0, 0, 0, -1};
    int mask1 = MASK[length1];
    // replace with
    int mask2 = (length1 == 8) ? -1 : 0; // or (comma1 == 0) ? -1 : 0; 
