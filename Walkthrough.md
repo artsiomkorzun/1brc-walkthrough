@@ -242,7 +242,7 @@ Let's test it:
 |----|--------------------|----------------:|----------------:|----------------:|----------------:|
 | 00 | Baseline           | 125.650 ± 0.740 |             0.0 | 160.107 ± 1.963 |             0.0 | 
 | 01 | Substring          | 104.383 ± 0.363 |          -16.93 | 132.624 ± 1.320 |          -17.17 |
-| 02 | NoGarbage          |  41.485 ± 0.139 |          -60.26 |  61.337 ± 0.152 |          -53.75 |
+| 02 | NoGarbage          |  41.824 ± 0.101 |          -59.93 |  61.337 ± 0.152 |          -53.75 |
 
 Nice, much better!
 
@@ -263,11 +263,11 @@ ByteBuffer buffer = ByteBuffer.allocateDirect(2 * 1024 * 1024);  // off-heap buf
 
 Let's test:
 
-| #  | Change             |      Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
-|----|--------------------|----------------:|----------------:|----------------:|----------------:|
-| 00 | Baseline           | 125.650 ± 0.740 |             0.0 | 160.107 ± 1.963 |             0.0 | 
-| 02 | NoGarbage          |  41.485 ± 0.139 |          -60.26 |  61.337 ± 0.152 |          -53.75 |
-| 03 | DirectBuffer       |  39.792 ± 0.264 |           -4.08 |  56.018 ± 0.183 |           -8.67 |
+| #  | Change          |      Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
+|----|-----------------|----------------:|----------------:|----------------:|----------------:|
+| 00 | Baseline        | 125.650 ± 0.740 |             0.0 | 160.107 ± 1.963 |             0.0 | 
+| 02 | NoGarbage       |  41.824 ± 0.101 |          -59.93 |  61.337 ± 0.152 |          -53.75 |
+| 03 | DirectBuffer    |  40.261 ± 0.119 |           -3.73 |  56.018 ± 0.183 |           -8.67 |
 
 Good enough for such a simple change.
 
@@ -287,17 +287,15 @@ byte b2 = segment.get(ValueLayout.JAVA_BYTE, position++); // with MemorySegment:
 MemorySegment is new API for working with native memory. It helps us to map a file with size greater than 2 GB.
 Rewriting our loop to work with MemorySegment. Let's test it:
 
-| #  | Change             |      Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
-|----|--------------------|----------------:|----------------:|----------------:|----------------:|
-| 00 | Baseline           | 125.650 ± 0.740 |             0.0 | 160.107 ± 1.963 |             0.0 | 
-| 03 | DirectBuffer       |  39.792 ± 0.264 |           -4.08 |  56.018 ± 0.183 |           -8.67 |
-| 04 | MappedSegment      |  40.173 ± 0.203 |            0.96 |  57.840 ± 0.297 |            3.25 |
+| #  | Change             |          Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
+|----|--------------------|--------------------:|----------------:|----------------:|----------------:|
+| 00 | Baseline           |     125.650 ± 0.740 |             0.0 | 160.107 ± 1.963 |             0.0 | 
+| 03 | DirectBuffer       |      40.261 ± 0.119 |           -3.73 |  56.018 ± 0.183 |           -8.67 |
+| 04 | MappedSegment      |      39.868 ± 0.338 |           -0.98 |  57.840 ± 0.297 |            3.25 |
 
-WOW! It does not seem to help. The performance drop is reproducible on different machines.
-The new API might be not yet that optimized as ByteBuffer.
-But in general it is a good technique, especially when a file "sits" in the page cache.
-Anyway we will keep this change. Because we want to map a whole file with size more than 2 GB. 
-Later we will reside to using private API to access memory to improve performance.
+We see a slight improvement on the main dataset and a degradation on the bonus dataset.
+In general, it is a good technique when a file "sits" in the page cache. 
+Also, it simplifies code removing one loop to read a file chunk by chunk.
 
 ### 04 - Parallelism
 It is time to grab all our cpus. Let's keep it simple by dividing our file into N even segments one for each core that we have.
@@ -347,8 +345,8 @@ Let's test it out:
 | #  | Change             |      Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
 |----|--------------------|----------------:|----------------:|----------------:|----------------:|
 | 00 | Baseline           | 125.650 ± 0.740 |             0.0 | 160.107 ± 1.963 |             0.0 | 
-| 04 | MappedSegment      |  40.173 ± 0.203 |            0.96 |  57.840 ± 0.297 |            3.25 |
-| 05 | Parallelism        |   5.583 ± 0.378 |          -86.10 |   8.018 ± 0.385 |          -86.14 |
+| 04 | MappedSegment      |  39.868 ± 0.338 |           -0.98 |  57.840 ± 0.297 |            3.25 |
+| 05 | Parallelism        |   5.583 ± 0.378 |          -86.00 |   8.018 ± 0.385 |          -86.14 |
 
 As expected, we got almost x8 improvement simply by utilizing 8 cpus.
 
