@@ -57,6 +57,11 @@ Instance spec:
 
 We will be using `hyperfine --warmup 3 --runs 10` to measure the execution time. So let's begin.
 
+### Disclaimer
+In a normal situation we would use a profiler to find out the bottlenecks in performance, and we would optimize the most critical ones.
+But here we want to optimize everything. I already spent a lot of time chasing these bottlenecks and made a lot of mistakes.
+Here I want to highlight only the changes which were successful.
+
 ### 00 - Baseline
 We begin wil a simple and short solution similar to the original one provided by the author of the challenge:
 ```java
@@ -88,7 +93,10 @@ It is simple and nice. Let's test execution time:
 
 | #  | Change             |      Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
 |----|--------------------|----------------:|----------------:|----------------:|----------------:|
-| 00 | Baseline           | 125.650 ± 0.740 |             0.0 | 160.107 ± 1.963 |             0.0 | 
+| 00 | Baseline           | 125.650 ± 0.740 |             0.0 | 160.107 ± 1.963 |             0.0 |
+
+* 413 - the main dataset with 413 unique station names. 
+* 10k - the bonus dataset with 10k unique station names.
 
 Good, it's like x2 faster on this instance than the original result. Not a problem, we will compare the numbers with this baseline.
 
@@ -113,7 +121,7 @@ So just using `String::substring` will be sufficient.
 ```java
 void solve(String[] args, Path file, PrintStream output) {
     Map<String, Aggregate> result = Files.lines(file)
-        .map((line) -> {                    // called 1M times
+        .map((line) -> {                    // called 1B times
             int comma = line.indexOf(';');  
             String station = line.substring(0, comma);
             double temperature = Double.parseDouble(line.substring(comma + 1));
@@ -133,7 +141,7 @@ Let's test it:
 Not bad for this small change. So picking a better-fit method is always a good idea. The warmup is finished.
 
 ### 02 - No Garbage
-Our lambda is called 1M times to parse a row. It creates a `Measurement` object and several `String` objects. 
+Our lambda is called 1B times to parse a row. It creates a `Measurement` object and several `String` objects. 
 But at the end we only have 413 entries. Let's see how much time we spend doing GC:
 
 ```text
@@ -287,11 +295,13 @@ Rewriting our loop to work with MemorySegment. Let's test it:
 
 WOW! It does not seem to help. The performance drop is reproducible on different machines.
 The new API might be not yet that optimized as ByteBuffer.
-But in general it is good technique, especially when a file "sits" in the page cache.
-Anyway we will keep this change.
+But in general it is a good technique, especially when a file "sits" in the page cache.
+Anyway we will keep this change. Because we want to map a whole file with size more than 2 GB. 
+Later we will reside to using private API to access memory to improve performance.
 
 ### 04 - Parallelism
-It is time to grab all our cpus. Let's keep it simple by dividing our file into N even segments. N is 8 for our evaluation.
+It is time to grab all our cpus. Let's keep it simple by dividing our file into N even segments one for each core that we have.
+N is 8 for our evaluation.
 ```java
 Aggregator[] split(MemorySegment segment) { 
     int parallelism = Runtime.getRuntime().availableProcessors();  // = 8
@@ -422,7 +432,7 @@ Next, we see that we allocate pretty large arrays. It has pros and cons:
 * No need to write resize logic. Unique keys <= 10K.
 * Reduces the number of collisions.
 * Increases cache misses only for pointer's arrays. Since we have only 413 entries, we still mostly target L1 cache.
-* Increases TLB misses if going too big with 4 KB pages.
+* Increases TLB misses if going too big with 4 KB pages. TLB is a hardware cache with a fixed number of slots that stores mapping from virtual to physical memory. 
 
 Let's collect collision stats:
 
@@ -432,7 +442,7 @@ Let's collect collision stats:
 
 So it is a trade-off between collisions and data locality.
 Going bigger does not make sense. 
-It is better to tune the hash function and the map for the main dataset later.
+It is better to tweak the hash function for the main dataset later.
 Let's test it:
 
 | #  | Change             |      Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
@@ -517,7 +527,7 @@ Nice! Not a big deal when performance is not a concern. But Unsafe is quite exte
 When people want to squeeze out every drop of performance. Let's see what happens in the future releases.
 
 ### 10 - No Key Copy
-We still have a long rode to ride with or without `Unsafe`.
+We still have a long road to ride with or without `Unsafe`.
 Our code copies a station to a byte array to look up in a map. 
 Why? Let's eliminate one more copy:
 
@@ -594,11 +604,11 @@ You can find some explanation here: [link](https://richardstartin.github.io/post
 The idea of this trick is to reduce the number of instructions, branches and branch misses. 
 Running perf stat proves it.
 
-| Counter       | Before (413) |         After (413) | Reduction (413) |
-|---------------|-------------:|--------------------:|----------------:|
-| instructions  | 256026817170 |        125049604981 |          -51.15 |
-| branches      |  33119837958 |         13451333400 |          -59.38 |
-| branch-misses |   1530827426 |           822678362 |          -46.25 |
+| Counter       | Before (413) | After (413) | Reduction (413) |
+|---------------|-------------:|------------:|----------------:|
+| instructions  |     256.02 B |    125.05 B |          -51.15 |
+| branches      |      33.12 B |     13.45 B |          -59.38 |
+| branch-misses |       1.53 B |      0.82 B |          -46.25 |
 
 Let's test it out.
 
@@ -659,11 +669,11 @@ The idea of this code to remove branches and take best of ILP (instruction-level
 Executing more instructions without branches can be faster than executing less with branches taken evenly.
 Branch mispredict hits hard.
 
-| Counter       | Before (413) |  After (413) | Reduction (413) |
-|---------------|-------------:|-------------:|----------------:|
-| instructions  | 125049604981 | 135605896527 |           +8.44 |
-| branches      |  13451333400 |  11207649114 |          -16.68 |
-| branch-misses |    822678362 |    525966810 |          -36.06 |
+| Counter       | Before (413) | After (413) | Reduction (413) |
+|---------------|-------------:|------------:|----------------:|
+| instructions  |     125.05 B |    135.61 B |           +8.44 |
+| branches      |      13.45 B |     11.21 B |          -16.68 |
+| branch-misses |       0.82 B |      0.53 B |          -36.06 |
 
 Let's test it out.
 
@@ -1004,14 +1014,14 @@ The code uses a lookup table to get a mask for 0-8 length. The length is 8 when 
 The mask zeros the second word if ';' is found in the first word, otherwise the second word is left untouched.
 This code takes more instructions to complete, but it does reduce branch misses dramatically.
 
-| Counter           |     Before (413) |       After (413) | Reduction(413) |
-|-------------------|-----------------:|------------------:|---------------:|
-| cycles            |      33858380246 |       33551654211 |                |
-| instructions      |      90120047666 |      108685743993 |         +20.60 |
-| instruction/cycle |             2.66 |              3.24 |                |
-| branches          |       8131257572 |        9013059309 |                | 
-| branch-misses     |        532076849 |          30633096 |         -94.24 |
-| miss/branch %     |            6.54% |             0.34% |                |
+| Counter           | Before (413) | After (413) | Reduction(413) |
+|-------------------|-------------:|------------:|---------------:|
+| cycles            |      33.86 B |     33.55 B |                |
+| instructions      |      90.12 B |    108.69 B |         +20.60 |
+| instruction/cycle |         2.66 |        3.24 |                |
+| branches          |       8.13 B |      9.01 B |                | 
+| branch-misses     |       0.53 B |      0.03 B |         -94.24 |
+| miss/branch %     |        6.54% |       0.34% |                |
 
 Almost 0.5 million branch misses are gone. We missed each second row. Let's test it out.
 
@@ -1034,7 +1044,7 @@ Look at the lookup table. It contains a lot of 0's and only one -1. So we can re
    int mask2 = (length1 == 8) ? -1 : 0; // or (comma1 == 0) ? -1 : 0; 
 ```
 LOL, it is one more branch. We have been working so hard to eliminate them.
-Not really, it will be compiled into conditional move (cmov). 
+However, it will be compiled into conditional move (cmov). 
 Back then, I was thinking of why do we read memory at all, it should help to reduce latency of reads. Let's test it out.
 
 | #  | Change             |      Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
@@ -1052,7 +1062,12 @@ Indeed, it improves things quite a bit at this stage. But no one said that it wi
 We got rid of the branches. Now it is time to take the best of instruction-level parallelism (ILP). 
 CPU has a quite complex pipeline and is able to be executing several independent instructions at the same time.
 How do we parallelize instructions? We already squeezed a lot out of one row. Can we process several rows in one loop?
-Yes, we can split our segment in 3 chunks and write a loop to process 3 chunks at once.
+Yes, we can split our segment in N chunks and write a loop to process N chunks at once. 
+Testing different N, we can empirically choose N to be 3.
+
+(I played with it on this machine, slightly reorganizing the code - move `::comma` into `::find`,
+and choosing N to be 4 will give better results - ~30 ms. 
+But let it be 3 to match with my original solution at 1brc to compare)
 
 ```java
 void loop(long position, long limit, Aggregates aggregates) {
@@ -1090,14 +1105,14 @@ void loop(long position, long limit, Aggregates aggregates) {
 
 Let's run perf stat:
 
-| Counter           | Before (413) |       After (413) | Reduction (413) |
-|-------------------|-------------:|------------------:|----------------:|
-| cycles            |  28887862039 |       22514924625 |          -22.06 |
-| instructions      | 111201298567 |      102418710802 |           -7.89 |
-| instruction/cycle |         3.85 |              4.55 |          +18.18 |
-| branches          |   7914621619 |        8420111564 |                 |
-| branch-misses     |     30474171 |          28630062 |                 |
-| miss/branch %     |        0.39% |             0.34% |                 |
+| Counter           | Before (413) | After (413) | Reduction (413) |
+|-------------------|-------------:|------------:|----------------:|
+| cycles            |      28.89 B |     22.51 B |          -22.06 |
+| instructions      |     111.20 B |    102.42 B |           -7.89 |
+| instruction/cycle |         3.85 |        4.55 |          +18.18 |
+| branches          |       7.91 B |      8.42 B |                 |
+| branch-misses     |       0.30 B |      0.28 B |                 |
+| miss/branch %     |        0.39% |       0.34% |                 |
 
 Now IPC is higher. It is really hard to get it right. It depends on CPU architecture. 
 It can cause register spilling when a function runs out of registers and spills data from 64-bit registers to stack or 128+ bit registers.
@@ -1163,7 +1178,7 @@ Let's test it out:
 
 Nice, finally we see the end of the road. We have got x150 improvement vs Baseline.
 
-### Original Solution 
+### [My Original Solution](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_artsiomkorzun.java) 
 
 Let's do some quick experiments. The original solution does not have CMOV optimization. Let's test it out.
 
@@ -1224,7 +1239,7 @@ Can you guess what it is?
 The answer is simple. The orphan left from the first run is still unmapping - stealing our CPUs.
 So the original solution finishes faster because it is more resistant against CPU contention.
 
-# Conclusions
+# Afterwords
 I hope you really enjoyed riding this really long road and learnt something new. 
 As for me, I learnt a lot of tricks how to squeeze every drop of performance out of a Java program.
 And now it does not seem like a month is enough for this challenge. You can always do better.
