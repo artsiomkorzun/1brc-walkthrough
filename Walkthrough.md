@@ -1,6 +1,6 @@
 # Walkthrough
 The one billion row challenge (1brc) is a fun exploration of how fast a Java application can parse and aggregate a file containing 1 billion rows.
-In this article you can learn the optimizations I applied at the challenge plus some easy ones you can apply in everyday coding.
+In this article, you can learn the optimizations I applied at the challenge plus some easy ones you can apply in everyday coding.
 
  ### Challenge
 You are given a file with 1 billion rows. Each row contains a text station and a numeric temperature, separated by a comma: 
@@ -16,11 +16,11 @@ Cracow;12.6
 ```
 
 The data has the following constraints:
- * Station - a UTF-8 string from 1 to 100 bytes. No '.' and '\u0000' characters allowed.
+ * Station - a UTF-8 string from 1 to 100 bytes. No '.' and '\u0000' characters are allowed.
  * Temperature - a numeric value in the format: #.#, ##.#, -#.#, -##.#. Exactly one fractional digit.
  * Unique stations <= 10k - the total number of unique stations is less or equal to 10000.
 
-The task is to write a Java program to find `min/max/avg` of temperature per station. The result is sorted alphabetically by station:
+The task is to write a Java program to find the `min/max/avg` of temperature per station. The result is sorted alphabetically by station:
 ```
 {Abha=-23.0/18.0/59.2, Abidjan=-16.2/26.0/67.3, Abéché=-10.0/29.4/69.0, Accra=-10.1/26.4/66.4, Addis Ababa=-23.7/16.0/67.0, Adelaide=-27.8/17.3/58.5, ...}
 ```
@@ -29,7 +29,7 @@ You have a whole month to complete this simple task. A whole month? Yep, sounds 
 
 ### Data
 Well, the constraints are just constraints, but let's look at the real data. 
-Hopefully for us, there is a [generator](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CreateMeasurements.java) in the [codebase](https://github.com/gunnarmorling/1brc/) to generate a file.
+There is a [generator](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CreateMeasurements.java) in the [codebase](https://github.com/gunnarmorling/1brc/) to generate a file.
 Looking into the source code, we see that it uses only 413 unique stations. Let's collect some stats on station lengths. The main dataset:
 * 0-7   - 52.0 %
 * 8-15  - 45.5 %
@@ -49,7 +49,7 @@ Here is 16.65% of data with long station names from 16 to 100 inclusively.
 ### Evaluation
 Unfortunately, I was not able to find the same instance which was used at the official evaluation.
 But that is not a big deal. How many of you target specific hardware with your Java program? 
-Not many, so let's spin c7a.4xlarge instance in AWS and test the numbers there. 
+Not many, so let's spin a c7a.4xlarge instance in AWS and test the numbers there. 
 Instance spec:
 * CPU: AMD EPYC 9R14 16 CPUs
 * MEM: DDR5 4800 MT/s 32 GB
@@ -58,12 +58,12 @@ Instance spec:
 We will be using `hyperfine --warmup 3 --runs 10` to measure the execution time. So let's begin.
 
 ### Disclaimer
-In a normal situation we would use a profiler to find out the bottlenecks in performance, and we would optimize the most critical ones.
+In a normal situation, we would use a profiler to find out performance bottlenecks, and we would optimize the most critical ones.
 But here we want to optimize everything. I already spent a lot of time chasing these bottlenecks and made a lot of mistakes.
-Here I want to highlight only the changes which were successful.
+Here I want to highlight only the successful changes.
 
 ### 00 - Baseline
-We begin wil a simple and short solution similar to the original one provided by the author of the challenge:
+We begin with a simple and short solution similar to the original one provided by the author of the challenge:
 ```java
 void solve(String[] args, Path file, PrintStream output) {
     Map<String, Aggregate> result = Files.lines(file)            // read line by line
@@ -89,7 +89,7 @@ void solve(String[] args, Path file, PrintStream output) {
     output.println(new TreeMap<>(result)); // sort and print
 }
 ```
-It is simple and nice. Let's test execution time:
+It is simple and nice. Let's test the execution time:
 
 | #  | Change             |      Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
 |----|--------------------|----------------:|----------------:|----------------:|----------------:|
@@ -114,7 +114,7 @@ String[] split(String regex, int limit, boolean withDelimiters) {
 }
 ```
 
-Going deeper, we see that the fast path uses `String::substring` and creates a list then an array.
+Going deeper, we see that the fast path uses `String::substring` and creates a list and an array.
 All this work seems to be expensive, we know our data too well. We have only two parts in a row: `station;temperature`. 
 So just using `String::substring` will be sufficient. 
 
@@ -142,7 +142,7 @@ Not bad for this small change. So picking a better-fit method is always a good i
 
 ### 02 - No Garbage
 Our lambda is called 1B times to parse a row. It creates a `Measurement` object and several `String` objects. 
-But at the end we only have 413 entries. Let's see how much time we spend doing GC:
+But in the end, we only have 413 entries. Let's see how much time we spend doing GC:
 
 ```text
 [0.002s][info][gc] Using Parallel
@@ -180,7 +180,7 @@ void solve(String[] args, Path file, PrintStream output) {
 }
 ```
 
-And the main loop looks like this:
+The main loop looks like this:
 ```java
 class Key {
     final byte[] array;
@@ -227,7 +227,7 @@ void loop(ByteBuffer buffer, int limit, Key key, Map<Key, Aggregate> aggregates)
     }
 }
 ```
-The idea is to reuse a `Key` object to store station data to look up in a map and only allocate objects when meeting a new key.
+The idea is to reuse a `Key` object to store station data to make lookups in a map and only allocate objects when meeting a new key.
 It happens only 413 times. So our code becomes allocation-free on the hot path.
 Let's prove it:
 
@@ -247,14 +247,14 @@ Let's test it:
 Nice, much better!
 
 ### 02 - Direct Buffer
-Our code allocates heap buffer to read chunks of a file:
+Our code allocates a heap buffer to read chunks of a file:
 
 ```java
 ByteBuffer buffer = ByteBuffer.allocate(2 * 1024 * 1024);  // heap buffer
 ```
 
 Going deeper, you will find out that `FileChannel::read` picks a `DirectBuffer` from a pool to call a system function
-to read a chunk of a file, then copies the data from the `DirectBuffer` to your heap buffer.
+to read a chunk of a file, then it copies the data from the `DirectBuffer` to your heap buffer.
 So let's just create a `DirectBuffer` to eliminate one copy.
 
 ```java
@@ -284,7 +284,7 @@ byte b1 = buffer.get();                                   // replace ByteBuffer:
 byte b2 = segment.get(ValueLayout.JAVA_BYTE, position++); // with MemorySegment::get
 ```
 
-MemorySegment is new API for working with native memory. It helps us to map a file with size greater than 2 GB.
+MemorySegment is a new API for working with native memory. It helps us to map a file with a size greater than 2 GB.
 Rewriting our loop to work with MemorySegment. Let's test it:
 
 | #  | Change             |          Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
@@ -293,12 +293,12 @@ Rewriting our loop to work with MemorySegment. Let's test it:
 | 03 | DirectBuffer       |      40.261 ± 0.119 |           -3.73 |  56.018 ± 0.183 |           -8.67 |
 | 04 | MappedSegment      |      39.868 ± 0.338 |           -0.98 |  57.840 ± 0.297 |            3.25 |
 
-We see a slight improvement on the main dataset and a degradation on the bonus dataset.
+We see a slight improvement in the main dataset and a degradation in the bonus dataset.
 In general, it is a good technique when a file "sits" in the page cache. 
 Also, it simplifies code removing one loop to read a file chunk by chunk.
 
 ### 04 - Parallelism
-It is time to grab all our cpus. Let's keep it simple by dividing our file into N even segments one for each core that we have.
+It is time to grab all our CPUs. Let's keep it simple by dividing our file into N even segments one for each core that we have.
 N is 8 for our evaluation.
 ```java
 Aggregator[] split(MemorySegment segment) { 
@@ -317,7 +317,7 @@ Aggregator[] split(MemorySegment segment) {
     return aggregators;
 }
 ```
-Then run the threads, wait when they finish and merge all results into one map.
+Run the threads, wait until they finish, and merge all results into one map.
 ```java
 void solve(String[] args, Path file, PrintStream output) {
     try (FileChannel channel = FileChannel.open(file, StandardOpenOption.READ)) {
@@ -348,10 +348,10 @@ Let's test it out:
 | 04 | MappedSegment      |  39.868 ± 0.338 |           -0.98 |  57.840 ± 0.297 |            3.25 |
 | 05 | Parallelism        |   5.583 ± 0.378 |          -86.00 |   8.018 ± 0.385 |          -86.14 |
 
-As expected, we got almost x8 improvement simply by utilizing 8 cpus.
+As expected, we got almost x8 improvement simply by utilizing 8 CPUs.
 
 ### 06 - Hash While Parsing
-It is time to optimize our loop. `Key::hashCode` loops over station to compute hash:
+It is time to optimize our loop. `Key::hashCode` loops over an array to compute hash:
 
 ```java
 class Key {
@@ -397,7 +397,7 @@ Let's test it out:
 Nice!
 
 ### 07 - Simple Map
-It is time to write our own hash map, which can change and tune later.
+It is time to write our own hash map, which we can change and tune later.
 ```java
 class Aggregates { // keys <= 10K, no need to grow
     final Key[] keys = new Key[64 * 1024];
@@ -423,9 +423,9 @@ class Aggregates { // keys <= 10K, no need to grow
     }
 }
 ```
-Here is the first bit trick. To compute the index of an entry in keys array we need to do `hash % keys.length`.
+Here is the first bit trick. To compute the index of an entry in the keys array we need to do `hash % keys.length`.
 But because `keys.length` is a power of two, we can do `hash & (keys.length)` instead. A division is heavier than masking.
-This trick is used in maps, queues and other data structures.
+This trick is used in maps and other data structures.
 Next, we see that we allocate pretty large arrays. It has pros and cons:
 * No need to write resize logic. Unique keys <= 10K.
 * Reduces the number of collisions.
@@ -452,7 +452,7 @@ Let's test it:
 Nice!
 
 ### 08 - Branchy Temperature
-What about temperature parsing. Temperature format: -#.#, -##.#, ##.#, ##.#. 
+What about temperature parsing? Temperature format: -#.#, -##.#, ##.#, ##.#. 
 We can use branches instead of a loop to parse it. 
 We can use int instead of double to store temperature * 10 and only divide it by 10 in the end, not in the loop.
 
@@ -500,9 +500,9 @@ Let's test it out:
 Nice!
 
 ### 09 - Unsafe
-`sun.misc.Unsafe` is private API, which is being considered to be banned in the future Java releases.
+`sun.misc.Unsafe` is a private API being considered to be banned in future Java releases.
 It will help us to work with mapped memory without bound checks.
-It is still possible to craft a decent loop using public API, which eliminates some or most of bounds checks.
+It is still possible to craft a decent loop using public API, which eliminates some or most of the bounds checks.
 But the problem is that it is much harder to do so than just using Unsafe:(. Let's replace:
 
 ```java
@@ -561,9 +561,9 @@ Nice!
 
 ### 11 - SWAR Station
 Here the real magic comes. Our code parses a station byte by byte. 
-But applying bit tricks, it is possible to read 8 bytes at once to find ';' separator.
+By applying bit tricks, it is possible to read 8 bytes at once to find ';' separator.
 It is worth mentioning that most CPUs where we run our applications happen to be little-endian. 
-Which means the bytes are inverted when we read 8 bytes from memory into a register. Example: `abcdefgh -> hgfedcba`.
+This means the bytes are inverted when we read 8 bytes from memory into a register. Example: `abcdefgh -> hgfedcba`.
 All bit tricks working with 8-byte words should account for that.
 
 ```java
@@ -599,7 +599,7 @@ void loop(long position, long limit, Aggregates aggregates) {
 ```
 You can find some explanation here: [link](https://richardstartin.github.io/posts/finding-bytes). Or you can read a book for true hackers: [Hacker's Delight](https://www.amazon.com/Hackers-Delight-2nd-Henry-Warren/dp/0321842685).
 
-The idea of this trick is to reduce the number of instructions, branches and branch misses. 
+The idea of this trick is to reduce the number of instructions, branches, branch misses. 
 Running perf stat proves it.
 
 | Counter       | Before (413) | After (413) | Reduction (413) |
@@ -617,7 +617,7 @@ Let's test it out.
 | 11 | SwarStation        |   2.059 ± 0.070 |          -39.74 |   7.042 ± 0.122 |           35.26 |
 
 There are insane gains on the main dataset. But what the heck with the bonus dataset?
-We damaged hash function by applying this change. Collecting collision stats proves it.
+We damaged the hash function by applying this change. Collecting collision stats proves it.
 
 | #  | Change      | Stations 413 | Stations 10k |
 |----|-------------|-------------:|-------------:|
@@ -661,9 +661,9 @@ long parseTemperature(long address) {
 }
 ```
 
-You can find explanation here: [link](https://questdb.io/blog/1brc-merykittys-magic-swar/).
+You can find an explanation here: [link](https://questdb.io/blog/1brc-merykittys-magic-swar/).
 
-The idea of this code to remove branches and take best of ILP (instruction-level parallelism). 
+The idea of this code is to remove branches and take the best of ILP (instruction-level parallelism). 
 Executing more instructions without branches can be faster than executing less with branches taken evenly.
 Branch mispredict hits hard.
 
@@ -733,12 +733,12 @@ Let's test it out:
 Nice! The bonus dataset starts feeling well.
 
 ### 14 - Better Map
-Let's analyze the dereference chain to access Key array.
+Let's analyze the dereference chain to access `Key` array.
 
 ```java
 entries[entryIndex] ->jump-> entry ->jump-> array[byteIndex]
 ```
-We chase pointers two times. Instead, we can inline `station/length/hash/min/max/sum/count` into entries array.
+We chase pointers two times. Instead, we can inline `station/length/hash/min/max/sum/count` into the entries array.
 Entry layout:
 
 * 0-4    - length
@@ -749,7 +749,7 @@ Entry layout:
 * 22-24  - max
 * 24-128 - station
 
-Each entry has 128-byte length. It fits into two 64-byte cache lines. If station length <= 40 it fits into one cache line.
+Each entry has a 128-byte length. It fits into two 64-byte cache lines. If station length <= 40 it fits into one cache line.
 Each entry of the main dataset fits into 1 cache line, 413 cache lines in total, which fits in L1 cache completely.
 The map capacity is 128 * 64 KB = 8 MB. Not a big deal, we only traverse the whole map at the end when merging.
 
@@ -764,15 +764,15 @@ Let's test it out:
 Nice! It improves performance more on the bonus dataset where L2/L3 caches are engaged.
 
 ### 15 - Parallelism Sharing
-Let's get back on how we parallelize. We split a file into N even chunks. Run N threads and then merge the results into one map.
+Let's get back to how we parallelize. We split a file into N even chunks. Run N threads and then merge the results into one map.
 That works under two conditions:
  * Even data - same data in chunks on average.
- * No cpu contention - our threads are the only ones running.
+ * No CPU contention - our threads are the only ones running.
 
-In the real life you won't see these conditions are met unless you are working in HFT and apply tuning tweaks - both hardware and software.
-Usually you spin your k8s cluster and keep deploying pods. As well as the data is not that even.
+In real life you won't see these conditions are met unless you are working in HFT and apply tuning tweaks - both hardware and software.
+Usually, you spin your k8s cluster and keep deploying pods. And the data is not that even.
 So some threads are naturally lagging behind. And our program is waiting for the slowest thread to complete.
-Instead, let's divide a file into M small segments and put them into a queue, so our threads can take them and process.
+Instead, let's divide a file into M small segments and put them into a queue, so our threads can take and process them.
 Instead of a queue, let's simply use a counter for the current segment and that's it.
 
 ```java
@@ -800,7 +800,7 @@ Let's test it out:
 | 15 | ParallelismSharing |   1.728 ± 0.020 |            0.05 |   2.211 ± 0.031 |            1.47 |
 
 Nothing? Yes, it does not improve the results at this point. 
-Because the threads finish at the same time in such isolated environment.
+Because the threads finish at the same time in such an isolated environment.
 But let's keep it till the end. Maybe something will happen.
 
 ### 16 - Parallelism Merging
@@ -840,18 +840,18 @@ I heard about GraalVM. Let's try it out:
 | 16 | ParallelismMerging |   1.725 ± 0.015 |           -0.13 |   2.218 ± 0.030 |            0.31 |
 | 17 | Graal JIT          |   1.697 ± 0.033 |           -1.66 |   2.178 ± 0.023 |           -1.80 |
 
-At this point it slightly improves the results.
+At this point, it slightly improves the results.
 
 ### 18 - Graal AOT
-GraalVM comes with `native-image` which can compile our program into native executable image. 
-The main gains we expect from eliminating startup cost of JVM.
-I had really hard time to get it right. Big thanks to Thomas Wuerthinger.
+GraalVM comes with `native-image` which can compile our program into a native executable image. 
+The main gains we expect from eliminating the startup cost of JVM.
+I had a really hard time getting it right. Big thanks to Thomas Wuerthinger.
 Let's try these settings:
 
 ```shell
 --gc=epsilon -O3 -march=native -R:MaxHeapSize=64m --enable-preview
 ```
-We use heap only to sort and print the result. So no GC is needed and 64 MB heap is enough.
+We use heap only to sort and print the result. So no GC is needed and a 64 MB heap is enough.
 
 ```shell
 --initialize-at-build-time=$CLASS_NAME
@@ -867,7 +867,7 @@ We do not need safepoint checks in our long loops.
 ```shell
 -H:TuneInlinerExploration=1
 ```
-We do want to inline more. This one will help later with ILP loop.
+We do want to inline more. This one will help later with an ILP loop.
 
 Let's check it out:
 
@@ -888,7 +888,7 @@ Insane! The more detailed breakdown:
 | 18.4 | Graal AOT: -H:TuneInlinerExploration=1            |           1.433 ± 0.002 |
 
 ### 19 - Branchy Min/Max
-The other side of branchless code is that, it is usually more heavy than branchy code. 
+The other side of branchless code is that, it is usually heavier than branchy code. 
 If the branches are taken rarely or frequently, they can perform better.
 It gives us an idea that we can try using branches to compute min/max for temperatures instead of `Math.min` and `Math.max` methods.
 
@@ -923,7 +923,7 @@ Let's test it out:
 Nice!
 
 ### 20 - Branchy 08 Loop
-All these branches and the fact, that the main dataset contains 97.5% of stations with length 0-15, give us an idea to try writing a branchy loop.
+All these branches and the fact, that the main dataset contains 97.5% of stations with lengths 0-15, give us an idea to try writing a branchy loop.
 We will split it into three cases: 0-7, 8-15, 16+.
 
 ```java
@@ -1042,8 +1042,8 @@ Look at the lookup table. It contains a lot of 0's and only one -1. So we can re
    int mask2 = (length1 == 8) ? -1 : 0; // or (comma1 == 0) ? -1 : 0; 
 ```
 LOL, it is one more branch. We have been working so hard to eliminate them.
-However, it will be compiled into conditional move (cmov). 
-Back then, I was thinking of why do we read memory at all, it should help to reduce latency of reads. Let's test it out.
+However, it will be compiled into a conditional move (cmov). 
+Back then, I was thinking of why I read memory at all, it should help to reduce the latency of reads. Let's test it out.
 
 | #  | Change             |      Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
 |----|--------------------|----------------:|----------------:|----------------:|----------------:|
@@ -1053,14 +1053,14 @@ Back then, I was thinking of why do we read memory at all, it should help to red
 
 You can find more information on cmov: [link](https://shipilev.net/jvm/anatomy-quarks/30-conditional-moves/).
 
-Indeed, it improves things quite a bit at this stage. But no one said that it will improve things at the end :(
+Indeed, it improves things quite a bit at this stage. But no one said that it would improve things in the end :(
 
 ### 23 - ILP
 
 We got rid of the branches. Now it is time to take the best of instruction-level parallelism (ILP). 
-CPU has a quite complex pipeline and is able to be executing several independent instructions at the same time.
+CPU has a quite complex pipeline and can execute several independent instructions at the same time.
 How do we parallelize instructions? We already squeezed a lot out of one row. Can we process several rows in one loop?
-Yes, we can split our segment in N chunks and write a loop to process N chunks at once. 
+Yes, we can split our segment into N chunks and write a loop to process N chunks at once. 
 Testing different N, we can empirically choose N to be 3.
 
 (I played with it on this machine, slightly reorganizing the code - move `::comma` into `::find`,
@@ -1128,12 +1128,12 @@ Wow, that is insane! We broke 1 second boundary at this machine.
 
 ### 24 - Subprocess
 
-The last, but not the least, optimization is related to unmaping a file. 
-The munmap call takes around 150-200 ms and cannot be parallelized, because it takes a process-wide lock.
-There are several options of how to mitigate this cost:
- * Coming back to plain IO and copy pages to user space - copy overhead.
- * Having main thread to unmap pages while the processing threads are working - cpu contention.
- * Having a subprocess to return the result and start unmaping in the background - an orphan left alone :(
+Last but not least, an optimization is related to unmapping a file. 
+The `munmap` call takes around 150-200 ms and cannot be parallelized, because it takes a process-wide lock.
+There are several options of how to reduce this cost:
+ * Come back to plain IO - copy overhead.
+ * Make the main thread unmap pages while the other threads are processing - CPU contention.
+ * Create a subprocess to return the result and start unmapping in the background - an orphan left alone :(
 
 We go with the option #3:
 
@@ -1192,18 +1192,18 @@ Nothing, it is still a little bit different code. Let's change the original solu
 | 97 | Original           |   0.835 ± 0.002 |            0.09 |   1.635 ± 0.001 |            0.49 |
 | 98 | Original + CMOV    |   0.836 ± 0.005 |            0.11 |   1.638 ± 0.001 |            0.19 |
 
-Nothing, it does not seem to help at this stage. Why? I have not figured it out. The answer lies hidden in CPU pipeline.
+Nothing, it does not seem to help at this stage. Why? I have not figured it out. The answer lies hidden in the CPU pipeline.
 
-On the other hand, it does improve the result on ~11% on Apple M1 Pro :)
+On the other hand, it does improve the result by ~11% on Apple M1 Pro :)
 
-And the last experiment, let's remove work sharing optimizations #15 and #16 from the original solution.
+And the last experiment, let's remove the work-sharing optimizations #15 and #16 from the original solution.
 
 | #  | Change             |      Time (413) | Reduction (413) |      Time (10k) | Reduction (10k) |
 |----|--------------------|----------------:|----------------:|----------------:|----------------:|
 | 97 | Original           |   0.835 ± 0.002 |            0.09 |   1.635 ± 0.001 |            0.49 |
 | 99 | Original - Sharing |   0.914 ± 0.020 |            9.48 |   1.709 ± 0.021 |            4.55 |
 
-LOL, when I run it once I got much better results. But when I run it one by one I see stable degradation.
+LOL, when I run it once I get much better results. But when I run it one by one I see stable degradation.
 Let's collect the time when our runners come to the finish line.
 
 Before the change:
@@ -1232,14 +1232,14 @@ And after the change:
 | 7     |           +2 |          +87 |
 | 8     |           +4 |          +92 |
 
-Something went wrong with the second run without work sharing optimization. 
+Something went wrong with the second run without the work-sharing optimization. 
 Can you guess what it is?
 The answer is simple. The orphan left from the first run is still unmapping - stealing our CPUs.
-So the original solution finishes faster because it is more resistant against CPU contention.
+So the original solution finishes faster because it is more resistant to CPU contention.
 
 # Afterwords
-I hope you really enjoyed riding this really long road and learnt something new. 
-As for me, I learnt a lot of tricks how to squeeze every drop of performance out of a Java program.
+I hope you enjoyed riding this long road and learned something new. 
+As for me, I learned a lot of tricks on how to squeeze every drop of performance out of a Java program.
 And now it does not seem like a month is enough for this challenge. You can always do better.
 
 # Acknowledgements
@@ -1252,4 +1252,4 @@ Thank you guys very much:
 * @jerrinot for the ILP and 16-byte branching.
 * @abeobk for the masking idea.
 
-All these ideas were incorporated in my final solution.
+All these ideas were incorporated into my final solution.
