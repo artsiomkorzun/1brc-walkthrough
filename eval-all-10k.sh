@@ -24,7 +24,7 @@ mkdir -p results/$NAME/
 rm measurements.txt
 ln -s $FILE measurements.txt
 
-for i in {0..24}
+for i in {0..25}
 do
   number=$(printf "%02d" $i)
   export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/$number.json"

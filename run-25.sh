@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 #  Copyright 2023 The original authors
 #
@@ -15,27 +15,13 @@
 #  limitations under the License.
 #
 
-NAME=413
-FILE=measurements.413.1B.txt
+. ./env.sh
 
-rm -r results/$NAME/
-mkdir -p results/$NAME/
+CLASS_NAME=dev.akorzun.onebrc.Challenge_25_Bonus
+IMAGE_NAME=build/image-25
 
-rm measurements.txt
-ln -s $FILE measurements.txt
+if ! [ -f $IMAGE_NAME ]; then
+    $NATIVE_IMAGE $NATIVE_IMAGE_OPTS --initialize-at-build-time=$CLASS_NAME $JAVA_CP -o $IMAGE_NAME $CLASS_NAME
+fi
 
-for i in {0..25}
-do
-  number=$(printf "%02d" $i)
-  export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/$number.json"
-  echo "Evaluating #$number"
-  ./eval.sh ./run-$number.sh
-done
-
-for i in {97..99}
-do
-  number=$i
-  export HYPERFINE_EXTRA_OPTS="--export-json results/$NAME/$number.json"
-  echo "Evaluating #$number"
-  ./eval.sh ./run-$number.sh
-done
+$IMAGE_NAME $*
