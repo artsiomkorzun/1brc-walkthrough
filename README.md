@@ -102,6 +102,8 @@ Results are collected using hyperfine with 3 warmups and 10 measurements.
 | 97 | My Original           |   0.962 ± 0.017 |            9.80 |   1.612 ± 0.006 |            3.51 |
 | 98 | My Original + CMOV    |   0.854 ± 0.004 |          -11.26 |   1.531 ± 0.014 |           -5.03 |
 | 99 | My Original - Sharing |   0.961 ± 0.009 |           -0.07 |   1.638 ± 0.013 |            1.59 |
+| -- | -                     |              -- |              -- |              -- |              -- | 
+| 25 | Bonus                 |   0.776 ± 0.004 |               - |   1.494 ± 0.004 |               - |
 
 * (*) hash function is affected, see collision table below.
 
