@@ -1,5 +1,5 @@
 # 1brc-walkthrough
-The step-by-step walkthrough over 1brc challenge.
+The step-by-step walkthrough over 1brc challenge. See: https://github.com/artsiomkorzun/1brc-walkthrough/blob/main/Walkthrough.md
 
 ## Prerequisites
 Install Open JDK and GraalVM JDK using sdkman:
