@@ -630,7 +630,7 @@ We will fix it later, let's continue.
 It is possible to parse temperature branchlessly:
 
 ```java
-// Authour: merykitty
+// Author: merykitty
 // Parse a number that may/may not contain a minus sign followed by a decimal with
 // 1 - 2 digits to the left and 1 digits to the right of the separator to a
 // fix-precision format. It returns the offset of the next line (presumably followed
