@@ -6,8 +6,8 @@ Install Open JDK and GraalVM JDK using sdkman:
 ``` bash
 curl -s "https://get.sdkman.io" | bash
 source "$HOME/.sdkman/bin/sdkman-init.sh"
-sdk install java 21.0.2-open
-sdk install java 21.0.2-graal
+sdk install java 25.ea.33-open
+sdk install java 25.ea.31-graal
 ```
 
 Install toolchain for GraalVM native-image: https://www.graalvm.org/22.0/reference-manual/native-image/#prerequisites.
@@ -27,7 +27,7 @@ Install hyperfine: https://github.com/sharkdp/hyperfine.
 ## Results
 Results are collected using hyperfine with 3 warmups and 10 measurements. 
 
-### AWS c7a.4xlarge
+### AWS c7a.4xlarge (GraalVM 21.0.2, April 2024)
 * CPU: AMD EPYC 9R14
 * MEM: DDR5 4800 MT/s 32 GB
 * AFFINITY: 0-7
@@ -67,7 +67,18 @@ Results are collected using hyperfine with 3 warmups and 10 measurements.
 
 * (*) hash function is affected, see collision table below.
 
-### MacBook Pro
+### AWS c7a.4xlarge (25.ea.31-graal, August 2025)
+* CPU: AMD EPYC 9R14
+* MEM: DDR5 4800 MT/s 32 GB
+* AFFINITY: 0-7
+* PROFILE: sudo tuned-adm profile hpc-compute
+
+| #  | Change        |  Time (413) | Reduction (413) |    Time (10k) | Reduction (10k) |
+|----|---------------|------------:|----------------:|--------------:|----------------:|
+| 97 | My Original   | 0.880 ± 1.2 |            0.00 | 1.711 ± 0.003 |             0.0 |
+| 26 | Vectorization | 0.777 ± 2.5 |           12.58 | 1.519 ± 0.002 |           12.93 |
+
+### MacBook Pro (GraalVM 21.0.2, April 2024)
 * CPU: Apple M1 Pro
 * MEM: 32 GB
 * AFFINITY: 0-9

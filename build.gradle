@@ -9,7 +9,7 @@ repositories {
     mavenCentral()
 }
 
-sourceSets{
+sourceSets {
     jmh {
         java {
             compileClasspath += main.output
@@ -25,12 +25,12 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.1'
 }
 
-compileJava {
-    options.compilerArgs += ['--enable-preview']
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['--enable-preview', '--add-modules', 'jdk.incubator.vector']
 }
 
 test {
-    jvmArgs += ['--enable-preview']
+    jvmArgs += ['--enable-preview', '--add-modules', 'jdk.incubator.vector']
     useJUnitPlatform()
 }
 
