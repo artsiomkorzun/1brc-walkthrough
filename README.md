@@ -27,6 +27,18 @@ Install hyperfine: https://github.com/sharkdp/hyperfine.
 ## Results
 Results are collected using hyperfine with 3 warmups and 10 measurements. 
 
+### AWS c7a.4xlarge (25.ea.31-graal, August 2025)
+* CPU: AMD EPYC 9R14
+* MEM: DDR5 4800 MT/s 32 GB
+* AFFINITY: 0-7
+* PROFILE: sudo tuned-adm profile hpc-compute
+
+| #  | Change        |  Time (413) | Reduction (413) |    Time (10k) | Reduction (10k) |
+|----|---------------|------------:|----------------:|--------------:|----------------:|
+| 97 | My Original   | 0.880 ± 1.2 |            0.00 | 1.711 ± 0.003 |             0.0 |
+| 26 | Vectorization | 0.777 ± 2.5 |           12.58 | 1.519 ± 0.002 |           12.93 |
+
+
 ### AWS c7a.4xlarge (GraalVM 21.0.2, April 2024)
 * CPU: AMD EPYC 9R14
 * MEM: DDR5 4800 MT/s 32 GB
@@ -66,17 +78,6 @@ Results are collected using hyperfine with 3 warmups and 10 measurements.
 | 25 | Bonus                 |   0.802 ± 0.001 |               - |   1.656 ± 0.001 |               - |
 
 * (*) hash function is affected, see collision table below.
-
-### AWS c7a.4xlarge (25.ea.31-graal, August 2025)
-* CPU: AMD EPYC 9R14
-* MEM: DDR5 4800 MT/s 32 GB
-* AFFINITY: 0-7
-* PROFILE: sudo tuned-adm profile hpc-compute
-
-| #  | Change        |  Time (413) | Reduction (413) |    Time (10k) | Reduction (10k) |
-|----|---------------|------------:|----------------:|--------------:|----------------:|
-| 97 | My Original   | 0.880 ± 1.2 |            0.00 | 1.711 ± 0.003 |             0.0 |
-| 26 | Vectorization | 0.777 ± 2.5 |           12.58 | 1.519 ± 0.002 |           12.93 |
 
 ### MacBook Pro (GraalVM 21.0.2, April 2024)
 * CPU: Apple M1 Pro
