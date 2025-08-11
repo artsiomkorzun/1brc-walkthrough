@@ -33,10 +33,10 @@ Results are collected using hyperfine with 3 warmups and 10 measurements.
 * AFFINITY: 0-7
 * PROFILE: sudo tuned-adm profile hpc-compute
 
-| #  | Change        |  Time (413) | Reduction (413) |    Time (10k) | Reduction (10k) |
-|----|---------------|------------:|----------------:|--------------:|----------------:|
-| 97 | My Original   | 0.880 ± 1.2 |            0.00 | 1.711 ± 0.003 |             0.0 |
-| 26 | Vectorization | 0.777 ± 2.5 |           12.58 | 1.519 ± 0.002 |           12.93 |
+| #  | Change        |     Time (413) | Reduction (413) |    Time (10k) | Reduction (10k) |
+|----|---------------|---------------:|----------------:|--------------:|----------------:|
+| 97 | My Original   |  0.880 ± 0.001 |            0.00 | 1.711 ± 0.003 |             0.0 |
+| 26 | Vectorization |  0.777 ± 0.002 |           12.58 | 1.519 ± 0.002 |           12.93 |
 
 
 ### AWS c7a.4xlarge (GraalVM 21.0.2, April 2024)
